@@ -1,5 +1,6 @@
 package lab1.data.frame;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,18 +37,18 @@ public class DataFrame {
         return true;
     }
 
-    public boolean addRow(Object... o) {
-        if(columns.size() != o.length) {
+    public boolean addRow(Object... objects) {
+        if(columns.size() != objects.length) {
             return false;
         }
 
         for (int i = 0; i < columns.size() ; i++) {
-            if(!columns.get(i).isValid(o[i])){
+            if(!columns.get(i).isValid(objects[i])){
                 return false;
             }
         }
         for (int i = 0; i < columns.size(); i++) {
-            columns.get(i).addElement(o[i]);
+            columns.get(i).addElement(objects[i]);
         }
         return true;
     }
@@ -75,13 +76,12 @@ public class DataFrame {
     }
 
     public DataFrame get(String[] cols, boolean copy) {
-
         DataFrame output = new DataFrame();
 
         for (String s: cols) {
             for (Column c: columns) {
                 if(s.equals(c.getName())) {
-                    output.columns.add(copy ? c : c.clone());
+                    output.columns.add(copy ? c.clone() : c);
                     break;
                 }
             }
@@ -89,4 +89,32 @@ public class DataFrame {
         return output;
     }
 
+    public DataFrame iloc(int i) {
+        DataFrame output = new DataFrame();
+
+        for(Column c : columns) {
+            Column column = new Column(c.getName(), c.getType());
+            if(this.size() > i && i >= 0) {
+                column.addElement(c.elementAtIndex(i));
+            }
+            output.columns.add(column);
+        }
+
+        return output;
+    }
+
+    public DataFrame iloc(int from, int to) {
+        DataFrame output = new DataFrame();
+        from = (from < 0) ? 0 : from;
+
+        for (Column c: columns) {
+            Column column = new Column(c.getName(), c.getType());
+            for(int i = from; (i <= to) && (i < size()); i++) {
+                column.addElement(c.elementAtIndex(i));
+            }
+            output.columns.add(column);
+        }
+
+        return output;
+    }
 }

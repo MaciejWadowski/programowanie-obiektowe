@@ -1,5 +1,7 @@
 package lab1.data.frame;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +29,14 @@ public class Column {
 
     public String getName() {
         return name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public Object elementAtIndex(int index) {
+        return list.get(index);
     }
 
     public int size() {
@@ -66,11 +76,25 @@ public class Column {
 
     @Override
     public Column clone() {
-
         Column column = new Column(name, type);
+        Method method = null;
+
+        if(list.isEmpty()) {
+            return column;
+        } else {
+            try {
+                method = list.get(0).getClass().getMethod("clone");
+            } catch (NoSuchMethodException e) {
+                System.out.println("Class: " + type + " doesn't have declared clone method");
+            }
+        }
 
         for (Object o: list) {
-            column.addElement(o);
+            try {
+                column.addElement(method == null ? o : method.invoke(o));
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
         }
         return column;
     }
