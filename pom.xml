@@ -5,7 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>agh</groupId>
-    <artifactId>ProgramowanieObiektowe</artifactId>
+    <artifactId>programowanie-obiektowe
+    </artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <build>

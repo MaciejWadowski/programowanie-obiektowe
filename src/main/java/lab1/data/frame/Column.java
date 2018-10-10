@@ -5,44 +5,86 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Column {
+public class Column implements Cloneable {
 
     private String name;
-    private String type;
+    private Class<?> type;
     private List<Object> list;
 
-    public Column(String name, String type) {
+    /**
+     * Constructor for Column class,
+     * if parameter name is not a primitive type, user have to pass Class name with
+     * its full  path otherwise a ClassNotFoundException is thrown
+     * @param name Column name
+     * @param type Column type
+     * @throws ClassNotFoundException
+     */
+    public Column(String name, String type) throws ClassNotFoundException {
         list = new ArrayList<>();
         this.name = name;
-        this.type = fix(type);
+        System.out.println(fix(type));
+        this.type = Class.forName(fix(type));
     }
 
+    /**
+     * Inspect if element is instance of Column Class
+     * @param element Object to inspect
+     * @return boolean true if it is instance of Column class Object
+     */
     public boolean isValid(Object element) {
-        return element.getClass().toString().contains(type);
+        return type.isInstance(element);
     }
 
-    public void addElement(Object element) {
+    /**
+     * Insert the Object element to the Column
+     * @param element Object to insert
+     * @return true if element insertion was successful
+     */
+    public boolean addElement(Object element) {
         if(isValid(element)) {
             list.add(element);
+            return true;
         }
+        return false;
     }
 
+    /**
+     * Return the name of Column
+     * @return name of the Column
+     */
     public String getName() {
         return name;
     }
 
-    public String getType() {
+    /**
+     * Return class type which Column is holding
+     * @return Column Class
+     */
+    public Class getType() {
         return type;
     }
 
+    /**
+     * Return the Object element at specified index
+     * @param index element position
+     * @return Object at specified index
+     */
     public Object elementAtIndex(int index) {
         return list.get(index);
     }
 
+    /**
+     * Return the current size of this Column
+     * @return int
+     */
     public int size() {
         return list.size();
     }
 
+    /**
+     * Return a String representation of this Column
+     * @return String representation of this Column
+     */
     @Override
     public String toString() {
         return "Column " +
@@ -52,41 +94,56 @@ public class Column {
     }
 
     private String fix(String type) {
+        String lang = "java.lang.";
         switch(type) {
             case "int":
-                return "Integer";
-            case "double":
-                return "Double";
-            case "byte":
-                return "Byte";
+            case "Integer":
+                return lang + "Integer";
             case "char":
-                return "Character";
-            case "boolean":
-                return "Boolean";
+            case "Character":
+                return lang + "Character";
+            case "double":
             case "short":
-                return "Short";
-            case "float":
-                return "Float";
             case "long":
-                return "Long";
+            case "byte":
+            case "float":
+            case "boolean":
+                type = lang + (char)((int)type.charAt(0) - 32) + type.substring(1);
+                return type;
+            case "Double":
+            case "Short":
+            case "Long":
+            case "Byte":
+            case "Float":
+            case "Boolean":
+            case "String":
+                return lang + type;
             default:
                 return type;
         }
     }
 
+    /**
+     * Returns a clone of this Column
+     * @return new cloned Column
+     */
     @Override
     public Column clone() {
-        Column column = new Column(name, type);
+        Column column = null;
+        try {
+            column = new Column(name, type.toString().replace("class ", ""));
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         Method method = null;
 
         if(list.isEmpty()) {
             return column;
-        } else {
-            try {
-                method = list.get(0).getClass().getMethod("clone");
-            } catch (NoSuchMethodException e) {
-                System.out.println("Class: " + type + " doesn't have declared clone method");
-            }
+        }
+        try {
+            method = list.get(0).getClass().getMethod("clone");
+        } catch (NoSuchMethodException e) {
+            System.out.println("Class: " + type + " doesn't have declared clone method");
         }
 
         for (Object o: list) {
