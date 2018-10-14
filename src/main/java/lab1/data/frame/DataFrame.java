@@ -1,5 +1,9 @@
 package lab1.data.frame;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +22,7 @@ public class DataFrame {
         columns = new ArrayList<>();
         for (int i = 0; i < types.length; i++) {
 
-            if((names.length <= i)) {
+            if(names.length <= i) {
                 break;
             }
 
@@ -34,6 +38,27 @@ public class DataFrame {
 
     private DataFrame() {
         columns = new ArrayList<>();
+    }
+
+    public DataFrame(String file, String[] types) throws IOException, ClassNotFoundException {
+
+        FileInputStream fstream = new FileInputStream(file);
+        BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+
+        String[] columnNames = br.readLine().split(",");
+        columns = new ArrayList<>();
+        for (int i = 0; i < types.length ; i++) {
+                columns.add(new Column(columnNames[i], types[i]));
+        }
+
+        String strLine;
+
+
+        while ((strLine = br.readLine()) != null)   {
+            String[] str = strLine.split(",");
+        }
+
+        br.close();
     }
 
     private boolean isUnique(String name) {
@@ -171,6 +196,24 @@ public class DataFrame {
             }
         }
 
+        return output;
+    }
+
+    public String[] getColumnNames() {
+        String[] output = new String[columns.size()];
+        int i = 0;
+        for (Column c : columns) {
+            output[i++] = c.getName();
+        }
+        return output;
+    }
+
+    public String[] getTypes() {
+        String[] output = new String[columns.size()];
+        int i = 0;
+        for (Column c : columns) {
+            output[i++] = c.getType().toString().replace("class ", "");
+        }
         return output;
     }
 }

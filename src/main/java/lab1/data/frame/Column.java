@@ -155,4 +155,8 @@ public class Column implements Cloneable {
         }
         return column;
     }
+
+    public Object getElement(int index) {
+        return list.get(index);
+    }
 }
