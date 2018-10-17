@@ -36,10 +36,21 @@ public class DataFrame {
         }
     }
 
-    private DataFrame() {
+    /**
+     * Create empty DataFrame
+     */
+    public DataFrame() {
         columns = new ArrayList<>();
     }
 
+    /**
+     * Constructor DataFrame wchic reads data from csv file,
+     * types are hol
+     * @param file CSV file
+     * @param types type
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public DataFrame(String file, String[] types) throws IOException, ClassNotFoundException {
 
         FileInputStream fstream = new FileInputStream(file);
@@ -48,17 +59,28 @@ public class DataFrame {
         String[] columnNames = br.readLine().split(",");
         columns = new ArrayList<>();
         for (int i = 0; i < types.length ; i++) {
-                columns.add(new Column(columnNames[i], types[i]));
+            columns.add(new Column(columnNames[i], types[i]));
         }
 
         String strLine;
-
-
         while ((strLine = br.readLine()) != null)   {
             String[] str = strLine.split(",");
+            Object[] objects = new Object[str.length];
+            for (int i = 0; i < str.length; i++) {
+                objects[i] = Double.parseDouble(str[i]);
+            }
+            addRow(objects);
         }
 
         br.close();
+    }
+
+    /**
+     * Constructor with ArrayList of columns as parameter
+     * @param columns list of columns
+     */
+    public DataFrame(List<Column> columns) {
+        this.columns = columns;
     }
 
     private boolean isUnique(String name) {
@@ -157,18 +179,12 @@ public class DataFrame {
      * @return new DataFrame with one row
      */
     public DataFrame iloc(int i) {
-        DataFrame output = new DataFrame();
+        DataFrame output = new DataFrame(getColumnNames(), getTypes());
 
-        for(Column c : columns) {
-            try {
-                Column column = new Column(c.getName(), c.getType().toString().replace("class ", ""));
-
-                if (this.size() > i && i >= 0) {
-                    column.addElement(c.elementAtIndex(i));
-                }
-                output.columns.add(column);
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
+        int k = 0;
+        if(i >= 0 && i < size()) {
+            for (Column c: output.columns) {
+                c.addElement(columns.get(i).getElement(k++));
             }
         }
         return output;
@@ -188,7 +204,7 @@ public class DataFrame {
             try {
                 Column column = new Column(c.getName(), c.getType().toString().replace("class ", ""));
                 for (int i = from; (i <= to) && (i < size()); i++) {
-                    column.addElement(c.elementAtIndex(i));
+                    column.addElement(c.getElement(i));
                 }
                 output.columns.add(column);
             } catch(ClassNotFoundException e) {
@@ -199,21 +215,28 @@ public class DataFrame {
         return output;
     }
 
+    /**
+     * Return array of Column names
+     * @return array of strings
+     */
     public String[] getColumnNames() {
-        String[] output = new String[columns.size()];
-        int i = 0;
-        for (Column c : columns) {
-            output[i++] = c.getName();
+        String[] str = new String[columns.size()];
+        for (int i = 0; i < str.length; i++) {
+            str[i] = columns.get(i).getName();
         }
-        return output;
+        return str;
     }
 
+    /**
+     * Return array of Column types
+     * @return array of strings
+     */
     public String[] getTypes() {
-        String[] output = new String[columns.size()];
-        int i = 0;
-        for (Column c : columns) {
-            output[i++] = c.getType().toString().replace("class ", "");
+        String[] str = new String[columns.size()];
+        for (int i = 0; i < str.length ; i++) {
+            str[i] = columns.get(i).getType().toString();
+            str[i] = str[i].replace("class ", "");
         }
-        return output;
+        return str;
     }
 }

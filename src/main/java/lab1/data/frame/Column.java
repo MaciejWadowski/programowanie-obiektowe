@@ -22,7 +22,6 @@ public class Column implements Cloneable {
     public Column(String name, String type) throws ClassNotFoundException {
         list = new ArrayList<>();
         this.name = name;
-        System.out.println(fix(type));
         this.type = Class.forName(fix(type));
     }
 
@@ -69,7 +68,7 @@ public class Column implements Cloneable {
      * @param index element position
      * @return Object at specified index
      */
-    public Object elementAtIndex(int index) {
+    public Object getElement(int index) {
         return list.get(index);
     }
 
@@ -156,7 +155,4 @@ public class Column implements Cloneable {
         return column;
     }
 
-    public Object getElement(int index) {
-        return list.get(index);
-    }
 }
