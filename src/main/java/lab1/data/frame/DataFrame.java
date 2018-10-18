@@ -18,7 +18,6 @@ public class DataFrame {
      * @param types types for Columns to hold
      */
     public DataFrame(String[] names, String[] types) {
-
         columns = new ArrayList<>();
         for (int i = 0; i < types.length; i++) {
 
@@ -83,7 +82,7 @@ public class DataFrame {
         this.columns = columns;
     }
 
-    private boolean isUnique(String name) {
+    protected boolean isUnique(String name) {
         for(Column c : columns) {
             if(c.getName().equals(name)) {
                 return false;
