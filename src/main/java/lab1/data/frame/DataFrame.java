@@ -44,7 +44,7 @@ public class DataFrame {
 
     /**
      * Constructor DataFrame wchic reads data from csv file,
-     * types are hol
+     * if not double or integer types, arguments must be String(Char and Byte too)
      * @param file CSV file
      * @param types type
      * @throws IOException
@@ -61,17 +61,45 @@ public class DataFrame {
             columns.add(new Column(columnNames[i], types[i]));
         }
 
+        String[] columnType = getTypes();
         String strLine;
+        Object[] objects = new Object[columns.size()];
         while ((strLine = br.readLine()) != null)   {
             String[] str = strLine.split(",");
-            Object[] objects = new Object[str.length];
             for (int i = 0; i < str.length; i++) {
-                objects[i] = Double.parseDouble(str[i]);
+                if(!columnType[i].equals("java.lang.String")) {
+                    objects[i] = castSwitcher(Double.parseDouble(str[i]), columnType[i]);
+                } else {
+                    objects[i] = str[i];
+                }
             }
-            addRow(objects);
+            addRow(objects.clone());
         }
 
         br.close();
+    }
+
+    /**
+     * Method to cast double type to another
+     * @param value double value from file
+     * @param clazz class to cast
+     * @return Object with proper class type
+     */
+    public Object castSwitcher(double value, String clazz) {
+        switch(clazz) {
+            case "java.lang.Integer":
+                return (int) value;
+            case "java.lang.Short":
+                return (short) value;
+            case "java.lang.Long":
+                return (long) value;
+            case "java.lang.Float":
+                return (float) value;
+            case "java.lang.Boolean":
+                return value != 0;
+            default:
+                return value;
+        }
     }
 
     /**
@@ -183,7 +211,7 @@ public class DataFrame {
         int k = 0;
         if(i >= 0 && i < size()) {
             for (Column c: output.columns) {
-                c.addElement(columns.get(i).getElement(k++));
+                c.addElement(columns.get(k++).getElement(i));
             }
         }
         return output;

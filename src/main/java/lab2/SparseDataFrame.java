@@ -3,9 +3,11 @@ package lab2;
 import lab1.data.frame.Column;
 import lab1.data.frame.DataFrame;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class SparseDataFrame extends DataFrame {
@@ -23,7 +25,7 @@ public class SparseDataFrame extends DataFrame {
         super(names, types);
         sparseColumnList = new ArrayList<>();
         String[] uniqueNames = getColumnNames();
-        String[] stringTypes = getTypes();
+        String[] stringTypes = super.getTypes();
         for (int i = 0; i < uniqueNames.length; i++) {
             try {
                 sparseColumnList.add(new SparseColumn(uniqueNames[i], stringTypes[i]));
@@ -35,16 +37,57 @@ public class SparseDataFrame extends DataFrame {
         size = 0;
     }
 
+    /**
+     * Create Empty SparseDataFrame
+     */
     public SparseDataFrame() {
         super();
         sparseColumnList = new ArrayList<>();
         size = 0;
     }
 
-    public SparseDataFrame(String file, String[] types) throws IOException, ClassNotFoundException {
-        super(file, types);
+    /**
+     * Constructor for SparseDataFrame, read values from CSV file
+     * @param file csv file to read
+     * @param types type for column to hold
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public SparseDataFrame(String file, String[] types, Object argumentToHide) throws IOException, ClassNotFoundException {
+        FileInputStream fstream = new FileInputStream(file);
+        BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+        this.argumentToHide = argumentToHide;
+
+        String[] columnNames = br.readLine().split(",");
+        sparseColumnList = new ArrayList<>();
+        for (int i = 0; i < types.length ; i++) {
+            sparseColumnList.add(new SparseColumn(columnNames[i], types[i]));
+        }
+
+        String[] columnType = getTypes();
+        String strLine;
+        Object[] objects = new Object[sparseColumnList.size()];
+        while ((strLine = br.readLine()) != null)   {
+            String[] str = strLine.split(",");
+            for (int i = 0; i < str.length; i++) {
+                if(!columnType[i].equals("java.lang.String")) {
+                    objects[i] = castSwitcher(Double.parseDouble(str[i]), columnType[i]);
+                } else {
+                    objects[i] = str[i];
+                }
+            }
+            addRow(objects.clone());
+        }
+
+        br.close();
     }
 
+    /**
+     * Add Row to SparseDataFrame, true if any element
+     * is stored in memory
+     * @param objects Objects to add to DataFrame
+     * @return true if any element isn't argumentToHide
+     */
     @Override
     public boolean addRow(Object... objects) {
         if(objects.length != sparseColumnList.size()) {
@@ -76,6 +119,43 @@ public class SparseDataFrame extends DataFrame {
         return false;
     }
 
+    /**
+     * Constructor which convert DataFrame
+     * to SparseDataFrame
+     * @param dataFrame DataFrame to convert
+     * @param argumentToHide argument to hide
+     */
+    public SparseDataFrame(DataFrame dataFrame, Object argumentToHide) {
+        super(dataFrame.getColumnNames(), dataFrame.getTypes());
+        this.argumentToHide = argumentToHide;
+        this.size = dataFrame.size();
+        String[] names = getColumnNames();
+        Column[] columns = new Column[names.length];
+        sparseColumnList = new ArrayList<>(names.length);
+
+        for (int i = 0; i < names.length; i++) {
+            columns[i] = dataFrame.getColumn(names[i]);
+        }
+
+        try {
+            for (Column c : columns) {
+                SparseColumn sparseColumn = new SparseColumn(c.getName(), c.getType().toString().replace("class ",""));
+                for (int i = 0; i < size; i++) {
+                    if (!c.getElement(i).equals(argumentToHide)) {
+                        sparseColumn.addElement(c.getElement(i), i);
+                    }
+                }
+                sparseColumnList.add(sparseColumn);
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Return human readable form of SparseDataFrame
+     * @return string representation of SparseDataFrame
+     */
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder("SparseDataFrame\n");
@@ -95,11 +175,21 @@ public class SparseDataFrame extends DataFrame {
         return stringBuilder.toString();
     }
 
+
+    /**
+     * return size of rows with empty elements
+     * @return real size
+     */
     @Override
     public int size() {
         return size;
     }
 
+    /**
+     * Return Column for Data Frame with specified name
+     * @param name Column name to retrieve
+     * @return Column
+     */
     @Override
     public Column getColumn(String name) {
         Column column = null;
@@ -125,18 +215,49 @@ public class SparseDataFrame extends DataFrame {
         return column;
     }
 
+    /**
+     * Return SparseColumn with specified name
+     * @param name Column name to retrieve
+     * @return SparseColumn
+     */
+    public SparseColumn getSparseColumn(String name) {
+        for (var sc: sparseColumnList) {
+            if(sc.getName().equals(name)) {
+                return sc.clone();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Return new SparseDataFrame with specified columns
+     * @param cols names of Columns to copy
+     * @param copy true - deep copy or false to shallow copy
+     * @return SparseDataFrame with columns given as parameter
+     */
     @Override
     public SparseDataFrame get(String[] cols, boolean copy) {
         SparseDataFrame sparseDataFrame = new SparseDataFrame();
         sparseDataFrame.size = size;
         sparseDataFrame.argumentToHide = argumentToHide;
+        sparseDataFrame.sparseColumnList = new ArrayList<>(cols.length);
 
-        for (var sc: sparseColumnList) {
-            sparseDataFrame.sparseColumnList.add(copy ? sc.clone() : sc);
+        for (int i = 0; i < cols.length; i++) {
+            for (var sc : sparseColumnList) {
+                if(sc.getName().equals(cols[i])) {
+                    sparseDataFrame.sparseColumnList.add(copy ? sc.clone() : sc);
+                    break;
+                }
+            }
         }
         return sparseDataFrame;
     }
 
+    /**
+     * Return SparseDataFrame with specified row
+     * @param i index of Row to copy
+     * @return SparseDataFrame with one row
+     */
     @Override
     public SparseDataFrame iloc(int i) {
         SparseDataFrame sparseDataFrame = new SparseDataFrame(getColumnNames(),getTypes(),argumentToHide);
@@ -165,6 +286,12 @@ public class SparseDataFrame extends DataFrame {
         return sparseDataFrame;
     }
 
+    /**
+     * Return new SparseDataFrame with rows between parameters form,to
+     * @param from from which index to copy
+     * @param to to which index to copy
+     * @return SparseDataFrame with specified columns
+     */
     @Override
     public SparseDataFrame iloc(int from, int to) {
         SparseDataFrame sparseDataFrame = new SparseDataFrame(getColumnNames(), getTypes(), argumentToHide);
@@ -190,34 +317,11 @@ public class SparseDataFrame extends DataFrame {
         return sparseDataFrame;
     }
 
-
-    public SparseDataFrame(DataFrame dataFrame, Object argumentToHide) {
-        super(dataFrame.getColumnNames(), dataFrame.getTypes());
-        this.argumentToHide = argumentToHide;
-        this.size = dataFrame.size();
-        String[] names = getColumnNames();
-        Column[] columns = new Column[names.length];
-        sparseColumnList = new ArrayList<>(names.length);
-
-        for (int i = 0; i < names.length; i++) {
-            columns[i] = dataFrame.getColumn(names[i]);
-        }
-
-        try {
-            for (Column c : columns) {
-                SparseColumn sparseColumn = new SparseColumn(c.getName(), c.getType().toString().replace("class ",""));
-                for (int i = 0; i < size; i++) {
-                    if (!c.getElement(i).equals(argumentToHide)) {
-                        sparseColumn.addElement(c.getElement(i), i);
-                    }
-                }
-                sparseColumnList.add(sparseColumn);
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
+    /**
+     * Return Converted SparseDataFrame
+     * to DataFrame
+     * @return DataFrame
+     */
     public DataFrame toDense() {
         DataFrame dataFrame = new DataFrame(getColumnNames(), getTypes());
         Object[] objects = new Object[sparseColumnList.size()];
@@ -238,5 +342,19 @@ public class SparseDataFrame extends DataFrame {
             dataFrame.addRow(objects.clone());
         }
         return dataFrame;
+    }
+
+    /**
+     * Return array of Column types
+     * @return array of strings
+     */
+    @Override
+    public String[] getTypes() {
+        String[] str = new String[sparseColumnList.size()];
+        for (int i = 0; i < str.length ; i++) {
+            str[i] = sparseColumnList.get(i).getType().toString();
+            str[i] = str[i].replace("class ", "");
+        }
+        return str;
     }
 }

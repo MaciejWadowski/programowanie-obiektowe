@@ -86,6 +86,17 @@ public class Column implements Cloneable {
      */
     @Override
     public String toString() {
+        StringBuilder stringBuilder = new StringBuilder("Column name='" + name + "\', type='" + type + "\'\n");
+        int counter = 0;
+        for (Object o: list) {
+            if(counter == 20) {
+                stringBuilder.append(o).append("]\n");
+                counter = 0;
+            } else {
+                stringBuilder.append(o).append(", ");
+                counter++;
+            }
+        }
         return "Column " +
                 "name='" + name + '\'' +
                 ", type='" + type + '\'' +
