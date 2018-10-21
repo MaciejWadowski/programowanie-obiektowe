@@ -1,5 +1,8 @@
 package lab1.data.frame;
 
+import lab3.IntegerValue;
+import lab3.Value;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -15,22 +18,18 @@ public class DataFrame {
     /**
      * Constructs DataFrame with empty Columns
      * @param names names of Columns
-     * @param types types for Columns to hold
+     * @param clazz types for Columns to hold
      */
-    public DataFrame(String[] names, String[] types) {
+    public DataFrame(String[] names, Class<? extends Value>[] clazz) {
         columns = new ArrayList<>();
-        for (int i = 0; i < types.length; i++) {
+        for (int i = 0; i < clazz.length; i++) {
 
             if(names.length <= i) {
                 break;
             }
 
             if(isUnique(names[i])) {
-                try {
-                    columns.add(new Column(names[i], types[i]));
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
+                columns.add(new Column(names[i], clazz[i]));
             }
         }
     }
@@ -46,34 +45,31 @@ public class DataFrame {
      * Constructor DataFrame wchic reads data from csv file,
      * if not double or integer types, arguments must be String(Char and Byte too)
      * @param file CSV file
-     * @param types type
+     * @param clazz type
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    public DataFrame(String file, String[] types) throws IOException, ClassNotFoundException {
+    public DataFrame(String file, Class<? extends Value>[] clazz) throws IOException, ClassNotFoundException {
 
         FileInputStream fstream = new FileInputStream(file);
         BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
 
         String[] columnNames = br.readLine().split(",");
         columns = new ArrayList<>();
-        for (int i = 0; i < types.length ; i++) {
-            columns.add(new Column(columnNames[i], types[i]));
+        for (int i = 0; i < clazz.length ; i++) {
+            columns.add(new Column(columnNames[i], clazz[i]));
         }
 
-        String[] columnType = getTypes();
+        Class<? extends Value>[] columnClass = getClasses();
+        IntegerValue integerValue = new IntegerValue(11);
         String strLine;
-        Object[] objects = new Object[columns.size()];
+        Value[] values = new Value[columns.size()];
         while ((strLine = br.readLine()) != null)   {
             String[] str = strLine.split(",");
             for (int i = 0; i < str.length; i++) {
-                if(!columnType[i].equals("java.lang.String")) {
-                    objects[i] = castSwitcher(Double.parseDouble(str[i]), columnType[i]);
-                } else {
-                    objects[i] = str[i];
-                }
+                values[i] = integerValue.create(str[i]);
             }
-            addRow(objects.clone());
+            addRow(values.clone());
         }
 
         br.close();
@@ -121,21 +117,16 @@ public class DataFrame {
 
     /**
      * Add row to DataFrame
-     * @param objects Objects to add to DataFrame
+     * @param values Objects to add to DataFrame
      * @return true if amount of passed objects match to amount of Columns and Objects to each Column have same type
      */
-    public boolean addRow(Object... objects) {
-        if(columns.size() != objects.length) {
+    public boolean addRow(Value... values) {
+        if(columns.size() != values.length) {
             return false;
         }
 
-        for (int i = 0; i < columns.size() ; i++) {
-            if(!columns.get(i).isValid(objects[i])){
-                return false;
-            }
-        }
         for (int i = 0; i < columns.size(); i++) {
-            columns.get(i).addElement(objects[i]);
+            columns.get(i).addElement(values[i]);
         }
         return true;
     }
@@ -184,15 +175,10 @@ public class DataFrame {
     public DataFrame get(String[] cols, boolean copy) {
         DataFrame output = new DataFrame();
 
-        if(!copy) {
-            output.columns = columns;
-            return output;
-        }
-
         for (String s: cols) {
             for (Column c: columns) {
                 if(s.equals(c.getName())) {
-                    output.columns.add(c.clone());
+                    output.columns.add(copy ? c.clone() : c);
                     break;
                 }
             }
@@ -206,7 +192,7 @@ public class DataFrame {
      * @return new DataFrame with one row
      */
     public DataFrame iloc(int i) {
-        DataFrame output = new DataFrame(getColumnNames(), getTypes());
+        DataFrame output = new DataFrame(getColumnNames(), getClasses());
 
         int k = 0;
         if(i >= 0 && i < size()) {
@@ -228,15 +214,11 @@ public class DataFrame {
         from = (from < 0) ? 0 : from;
 
         for (Column c: columns) {
-            try {
-                Column column = new Column(c.getName(), c.getType().toString().replace("class ", ""));
-                for (int i = from; (i <= to) && (i < size()); i++) {
-                    column.addElement(c.getElement(i));
-                }
-                output.columns.add(column);
-            } catch(ClassNotFoundException e) {
-                e.printStackTrace();
+            Column column = new Column(c.getName(), c.getClazz());
+            for (int i = from; (i <= to) && (i < size()); i++) {
+                column.addElement(c.getElement(i));
             }
+            output.columns.add(column);
         }
 
         return output;
@@ -258,12 +240,11 @@ public class DataFrame {
      * Return array of Column types
      * @return array of strings
      */
-    public String[] getTypes() {
-        String[] str = new String[columns.size()];
-        for (int i = 0; i < str.length ; i++) {
-            str[i] = columns.get(i).getType().toString();
-            str[i] = str[i].replace("class ", "");
+    public Class<? extends Value>[] getClasses() {
+        Class[] classes = new Class[columns.size()];
+        for (int i = 0; i < classes.length ; i++) {
+            classes[i] = columns.get(i).getClazz();
         }
-        return str;
+        return classes;
     }
 }

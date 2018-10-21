@@ -1,50 +1,41 @@
 package lab1.data.frame;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import lab3.Value;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Column implements Cloneable {
 
     private String name;
-    private Class<?> type;
-    private List<Object> list;
+    private Class<? extends Value> clazz;
+    private List<Value> list;
 
     /**
      * Constructor for Column class,
-     * if parameter name is not a primitive type, user have to pass Class name with
+     * if parameter name is not a primitive clazz, user have to pass Class name with
      * its full  path otherwise a ClassNotFoundException is thrown
      * @param name Column name
-     * @param type Column type
-     * @throws ClassNotFoundException
+     * @param clazz Column class
      */
-    public Column(String name, String type) throws ClassNotFoundException {
+    public Column(String name, Class<? extends Value> clazz) {
         list = new ArrayList<>();
         this.name = name;
-        this.type = Class.forName(fix(type));
+        this.clazz = clazz;
     }
 
-    /**
-     * Inspect if element is instance of Column Class
-     * @param element Object to inspect
-     * @return boolean true if it is instance of Column class Object
-     */
-    public boolean isValid(Object element) {
-        return type.isInstance(element);
-    }
 
     /**
      * Insert the Object element to the Column
      * @param element Object to insert
-     * @return true if element insertion was successful
-     */
-    public boolean addElement(Object element) {
-        if(isValid(element)) {
+     * */
+    public void addElement(Value element) {
+        if(clazz.isInstance(element)) {
             list.add(element);
-            return true;
+        } else {
+            throw new IllegalArgumentException();
         }
-        return false;
+
     }
 
     /**
@@ -56,19 +47,19 @@ public class Column implements Cloneable {
     }
 
     /**
-     * Return class type which Column is holding
+     * Return class  which Column is holding
      * @return Column Class
      */
-    public Class getType() {
-        return type;
+    public Class<? extends Value> getClazz() {
+        return clazz;
     }
 
     /**
-     * Return the Object element at specified index
+     * Return the Value element at specified index
      * @param index element position
-     * @return Object at specified index
+     * @return Value at specified index
      */
-    public Object getElement(int index) {
+    public Value getElement(int index) {
         return list.get(index);
     }
 
@@ -86,51 +77,10 @@ public class Column implements Cloneable {
      */
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder("Column name='" + name + "\', type='" + type + "\'\n");
-        int counter = 0;
-        for (Object o: list) {
-            if(counter == 20) {
-                stringBuilder.append(o).append("]\n");
-                counter = 0;
-            } else {
-                stringBuilder.append(o).append(", ");
-                counter++;
-            }
-        }
         return "Column " +
                 "name='" + name + '\'' +
-                ", type='" + type + '\'' +
+                ", clazz='" + clazz + '\'' +
                 "\n list=" + list;
-    }
-
-    private String fix(String type) {
-        String lang = "java.lang.";
-        switch(type) {
-            case "int":
-            case "Integer":
-                return lang + "Integer";
-            case "char":
-            case "Character":
-                return lang + "Character";
-            case "double":
-            case "short":
-            case "long":
-            case "byte":
-            case "float":
-            case "boolean":
-                type = lang + (char)((int)type.charAt(0) - 32) + type.substring(1);
-                return type;
-            case "Double":
-            case "Short":
-            case "Long":
-            case "Byte":
-            case "Float":
-            case "Boolean":
-            case "String":
-                return lang + type;
-            default:
-                return type;
-        }
     }
 
     /**
@@ -139,30 +89,8 @@ public class Column implements Cloneable {
      */
     @Override
     public Column clone() {
-        Column column = null;
-        try {
-            column = new Column(name, type.toString().replace("class ", ""));
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        Method method = null;
-
-        if(list.isEmpty()) {
-            return column;
-        }
-        try {
-            method = list.get(0).getClass().getMethod("clone");
-        } catch (NoSuchMethodException e) {
-            System.out.println("Class: " + type + " doesn't have declared clone method");
-        }
-
-        for (Object o: list) {
-            try {
-                column.addElement(method == null ? o : method.invoke(o));
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        }
+        Column column = new Column(name, clazz);
+        column.list = new ArrayList<>(list);
         return column;
     }
 

@@ -2,6 +2,8 @@ package lab2;
 
 import lab1.data.frame.Column;
 import lab1.data.frame.DataFrame;
+import lab3.IntegerValue;
+import lab3.Value;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -13,25 +15,21 @@ import java.util.List;
 public class SparseDataFrame extends DataFrame {
 
     private List<SparseColumn> sparseColumnList;
-    private Object argumentToHide;
+    private Value argumentToHide;
     private int size;
 
     /**
      * Constructs DataFrame with empty Columns
      * @param names names of Columns
-     * @param types types for Columns to hold
+     * @param classes types for Columns to hold
      */
-    public SparseDataFrame(String[] names, String[] types, Object argumentToHide) {
-        super(names, types);
+    public SparseDataFrame(String[] names, Class<? extends Value>[] classes, Value argumentToHide) {
+        super(names, classes);
         sparseColumnList = new ArrayList<>();
         String[] uniqueNames = getColumnNames();
-        String[] stringTypes = super.getTypes();
+        Class[] columnClass = super.getClasses();
         for (int i = 0; i < uniqueNames.length; i++) {
-            try {
-                sparseColumnList.add(new SparseColumn(uniqueNames[i], stringTypes[i]));
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
+            sparseColumnList.add(new SparseColumn(uniqueNames[i], columnClass[i]));
         }
         this.argumentToHide = argumentToHide;
         size = 0;
@@ -49,34 +47,30 @@ public class SparseDataFrame extends DataFrame {
     /**
      * Constructor for SparseDataFrame, read values from CSV file
      * @param file csv file to read
-     * @param types type for column to hold
+     * @param classes type for column to hold
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    public SparseDataFrame(String file, String[] types, Object argumentToHide) throws IOException, ClassNotFoundException {
+    public SparseDataFrame(String file, Class<? extends Value>[] classes, Value argumentToHide) throws IOException{
         FileInputStream fstream = new FileInputStream(file);
         BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
         this.argumentToHide = argumentToHide;
 
         String[] columnNames = br.readLine().split(",");
         sparseColumnList = new ArrayList<>();
-        for (int i = 0; i < types.length ; i++) {
-            sparseColumnList.add(new SparseColumn(columnNames[i], types[i]));
+        for (int i = 0; i < classes.length ; i++) {
+            sparseColumnList.add(new SparseColumn(columnNames[i], classes[i]));
         }
 
-        String[] columnType = getTypes();
         String strLine;
-        Object[] objects = new Object[sparseColumnList.size()];
+        Value[] values = new Value[sparseColumnList.size()];
+        IntegerValue integerValue = new IntegerValue(1);
         while ((strLine = br.readLine()) != null)   {
             String[] str = strLine.split(",");
             for (int i = 0; i < str.length; i++) {
-                if(!columnType[i].equals("java.lang.String")) {
-                    objects[i] = castSwitcher(Double.parseDouble(str[i]), columnType[i]);
-                } else {
-                    objects[i] = str[i];
-                }
+               values[i] = integerValue.create(str[i]);
             }
-            addRow(objects.clone());
+            addRow(values.clone());
         }
 
         br.close();
@@ -85,21 +79,21 @@ public class SparseDataFrame extends DataFrame {
     /**
      * Add Row to SparseDataFrame, true if any element
      * is stored in memory
-     * @param objects Objects to add to DataFrame
+     * @param values Objects to add to DataFrame
      * @return true if any element isn't argumentToHide
      */
     @Override
-    public boolean addRow(Object... objects) {
-        if(objects.length != sparseColumnList.size()) {
+    public boolean addRow(Value... values) {
+        if(values.length != sparseColumnList.size()) {
             return false;
         }
 
         boolean toAdd = true;
 
-        for (int i = 0; i < objects.length; i++) {
-            if(!sparseColumnList.get(i).getType().isInstance(objects[i])) {
+        for (int i = 0; i < values.length; i++) {
+            if(!sparseColumnList.get(i).getClazz().isInstance(values[i])) {
                 toAdd = false;
-                System.out.println(sparseColumnList.get(i).getType() + " and  "  + objects[i].getClass());
+                System.out.println(sparseColumnList.get(i).getClazz() + " and  "  + values[i].getClass());
                 break;
             }
         }
@@ -107,8 +101,8 @@ public class SparseDataFrame extends DataFrame {
         if(toAdd) {
             int i = 0;
             for(var sparseColumn: sparseColumnList) {
-                if(!objects[i].equals(argumentToHide)) {
-                    sparseColumn.addElement(objects[i], size);
+                if(!values[i].equals(argumentToHide)) {
+                    sparseColumn.addElement(values[i], size);
                 }
                 i++;
             }
@@ -125,8 +119,8 @@ public class SparseDataFrame extends DataFrame {
      * @param dataFrame DataFrame to convert
      * @param argumentToHide argument to hide
      */
-    public SparseDataFrame(DataFrame dataFrame, Object argumentToHide) {
-        super(dataFrame.getColumnNames(), dataFrame.getTypes());
+    public SparseDataFrame(DataFrame dataFrame, Value argumentToHide) {
+        super(dataFrame.getColumnNames(), dataFrame.getClasses());
         this.argumentToHide = argumentToHide;
         this.size = dataFrame.size();
         String[] names = getColumnNames();
@@ -137,18 +131,15 @@ public class SparseDataFrame extends DataFrame {
             columns[i] = dataFrame.getColumn(names[i]);
         }
 
-        try {
-            for (Column c : columns) {
-                SparseColumn sparseColumn = new SparseColumn(c.getName(), c.getType().toString().replace("class ",""));
-                for (int i = 0; i < size; i++) {
-                    if (!c.getElement(i).equals(argumentToHide)) {
-                        sparseColumn.addElement(c.getElement(i), i);
-                    }
+        for (Column c : columns) {
+            SparseColumn sparseColumn = new SparseColumn(c.getName(), c.getClazz());
+
+            for (int i = 0; i < size; i++) {
+                if (!c.getElement(i).equals(argumentToHide)) {
+                    sparseColumn.addElement(c.getElement(i), i);
                 }
-                sparseColumnList.add(sparseColumn);
             }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            sparseColumnList.add(sparseColumn);
         }
     }
 
@@ -164,8 +155,8 @@ public class SparseDataFrame extends DataFrame {
             stringBuilder.append(sc.getName()).append('\n');
 
             for (int i = 0; i < size; i++) {
-                if(k < sc.size() && sc.getElement(k).getIndex() == i) {
-                    stringBuilder.append(sc.getElement(k++).getObject()).append(", ");
+                if(k < sc.size() && sc.getCOOElement(k).getIndex() == i) {
+                    stringBuilder.append(sc.getCOOElement(k++).getValue()).append(", ");
                 } else {
                     stringBuilder.append(argumentToHide).append(", ");
                 }
@@ -197,18 +188,14 @@ public class SparseDataFrame extends DataFrame {
 
         for (var sc: sparseColumnList) {
             if(sc.getName().equals(name)) {
-                try {
-                    column = new Column(name, sc.getType().toString().replace("class ", ""));
+                column = new Column(name, sc.getClazz());
 
-                    for (int i = 0; i < size; i++) {
-                        if((j < sc.size()) && (sc.getElement(j).getIndex() == i)) {
-                            column.addElement(sc.getElement(j++).getObject());
-                        } else {
-                            column.addElement(argumentToHide);
-                        }
+                for (int i = 0; i < size; i++) {
+                    if((j < sc.size()) && (sc.getCOOElement(j).getIndex() == i)) {
+                        column.addElement(sc.getCOOElement(j++).getValue());
+                    } else {
+                        column.addElement(argumentToHide);
                     }
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
                 }
             }
         }
@@ -260,29 +247,29 @@ public class SparseDataFrame extends DataFrame {
      */
     @Override
     public SparseDataFrame iloc(int i) {
-        SparseDataFrame sparseDataFrame = new SparseDataFrame(getColumnNames(),getTypes(),argumentToHide);
+        SparseDataFrame sparseDataFrame = new SparseDataFrame(getColumnNames(), getClasses(), argumentToHide);
 
         if(i < 0 || i >= size) {
             return sparseDataFrame;
         }
 
-        Object[] objects = new Object[sparseColumnList.size()];
+        Value[] values = new Value[sparseColumnList.size()];
         int k = 0;
         for (var sc:sparseColumnList) {
             boolean toAdd = true;
             for (int j = 0; j < sc.size(); j++) {
-                if(sc.getElement(j).getIndex() == i) {
-                    objects[k] = sc.getElement(j).getObject();
+                if(sc.getCOOElement(j).getIndex() == i) {
+                    values[k] = sc.getCOOElement(j).getValue();
                     toAdd = false;
                     break;
                 }
             }
             if(toAdd) {
-                objects[k] = argumentToHide;
+                values[k] = argumentToHide;
             }
             k++;
         }
-        sparseDataFrame.addRow(objects);
+        sparseDataFrame.addRow(values);
         return sparseDataFrame;
     }
 
@@ -294,24 +281,20 @@ public class SparseDataFrame extends DataFrame {
      */
     @Override
     public SparseDataFrame iloc(int from, int to) {
-        SparseDataFrame sparseDataFrame = new SparseDataFrame(getColumnNames(), getTypes(), argumentToHide);
+        SparseDataFrame sparseDataFrame = new SparseDataFrame(getColumnNames(), super.getClasses(), argumentToHide);
         if(from < 0 || to < 0  || from >= to || to > size) {
             return sparseDataFrame;
         }
 
         sparseDataFrame.sparseColumnList.clear();
         for (var sc: sparseColumnList) {
-            try {
-                SparseColumn sparseColumn = new SparseColumn(sc.getName(), sc.getType().toString().replace("class ",""));
-                for (int  i = 0;i < sc.size() && i < to; i++) {
-                    if((sc.getElement(i).getIndex() >= from) && (sc.getElement(i).getIndex() < to)) {
-                        sparseColumn.addElement(sc.getElement(i));
-                    }
+            SparseColumn sparseColumn = new SparseColumn(sc.getName(), sc.getClazz());
+            for (int  i = 0;i < sc.size() && i < to; i++) {
+                if((sc.getCOOElement(i).getIndex() >= from) && (sc.getCOOElement(i).getIndex() < to)) {
+                    sparseColumn.addElement(sc.getCOOElement(i));
                 }
-                sparseDataFrame.sparseColumnList.add(sparseColumn);
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
             }
+            sparseDataFrame.sparseColumnList.add(sparseColumn);
         }
         sparseDataFrame.size = to;
         return sparseDataFrame;
@@ -323,8 +306,8 @@ public class SparseDataFrame extends DataFrame {
      * @return DataFrame
      */
     public DataFrame toDense() {
-        DataFrame dataFrame = new DataFrame(getColumnNames(), getTypes());
-        Object[] objects = new Object[sparseColumnList.size()];
+        DataFrame dataFrame = new DataFrame(getColumnNames(), getClasses());
+        Value[] values = new Value[sparseColumnList.size()];
         int[] indexes = new int[sparseColumnList.size()];
         for (int i = 0; i < indexes.length; i++) {
             indexes[i] = 0;
@@ -333,13 +316,13 @@ public class SparseDataFrame extends DataFrame {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < sparseColumnList.size(); j++) {
                 if((indexes[j] < sparseColumnList.get(j).size())
-                        && (sparseColumnList.get(j).getElement(indexes[j]).getIndex() == i)) {
-                    objects[j] = sparseColumnList.get(j).getElement(indexes[j]++).getObject();
+                        && (sparseColumnList.get(j).getCOOElement(indexes[j]).getIndex() == i)) {
+                    values[j] = sparseColumnList.get(j).getCOOElement(indexes[j]++).getValue();
                 } else {
-                    objects[j] = argumentToHide;
+                    values[j] = argumentToHide;
                 }
             }
-            dataFrame.addRow(objects.clone());
+            dataFrame.addRow(values.clone());
         }
         return dataFrame;
     }
@@ -349,12 +332,11 @@ public class SparseDataFrame extends DataFrame {
      * @return array of strings
      */
     @Override
-    public String[] getTypes() {
-        String[] str = new String[sparseColumnList.size()];
-        for (int i = 0; i < str.length ; i++) {
-            str[i] = sparseColumnList.get(i).getType().toString();
-            str[i] = str[i].replace("class ", "");
+    public Class<? extends Value>[] getClasses() {
+        Class[] classes = new Class[sparseColumnList.size()];
+        for (int i = 0; i < classes.length ; i++) {
+            classes[i] = sparseColumnList.get(i).getClazz();
         }
-        return str;
+        return classes;
     }
 }

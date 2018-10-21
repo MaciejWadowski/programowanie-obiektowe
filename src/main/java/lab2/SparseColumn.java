@@ -1,6 +1,7 @@
 package lab2;
 
 import lab1.data.frame.Column;
+import lab3.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,11 +16,10 @@ public class SparseColumn extends Column {
      * its full  path otherwise a ClassNotFoundException is thrown
      *
      * @param name Column name
-     * @param type Column type
-     * @throws ClassNotFoundException
+     * @param clazz Column type
      */
-    public SparseColumn(String name, String type) throws ClassNotFoundException {
-        super(name, type);
+    public SparseColumn(String name, Class<? extends Value> clazz) {
+        super(name, clazz);
         cooValues = new ArrayList<>();
     }
 
@@ -29,8 +29,8 @@ public class SparseColumn extends Column {
      * @param index element position
      * @return COOValue object
      */
-    @Override
-    public COOValue getElement(int index) {
+
+    public COOValue getCOOElement(int index) {
         return cooValues.get(index);
     }
 
@@ -58,13 +58,8 @@ public class SparseColumn extends Column {
 
     @Override
     public SparseColumn clone() {
-        SparseColumn sparseColumn = null;
-        try {
-            sparseColumn = new SparseColumn(getName(), getType().toString().replace("class ",""));
-            sparseColumn.cooValues = new ArrayList<>(cooValues);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+        SparseColumn sparseColumn = new SparseColumn(getName(), getClazz());
+        sparseColumn.cooValues = new ArrayList<>(cooValues);
         return sparseColumn;
     }
 
@@ -72,7 +67,7 @@ public class SparseColumn extends Column {
         cooValues.add(element);
     }
 
-    public void addElement(Object object, int index) {
-        cooValues.add(new COOValue(object,index));
+    public void addElement(Value value, int index) {
+        cooValues.add(new COOValue(value,index));
     }
 }
