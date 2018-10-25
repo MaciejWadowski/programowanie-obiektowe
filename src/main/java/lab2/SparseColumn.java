@@ -15,7 +15,7 @@ public class SparseColumn extends Column {
      * if parameter name is not a primitive type, user have to pass Class name with
      * its full  path otherwise a ClassNotFoundException is thrown
      *
-     * @param name Column name
+     * @param name  Column name
      * @param clazz Column type
      */
     public SparseColumn(String name, Class<? extends Value> clazz) {
@@ -26,6 +26,7 @@ public class SparseColumn extends Column {
     /**
      * Return COOValue object from column
      * at specified index
+     *
      * @param index element position
      * @return COOValue object
      */
@@ -37,6 +38,7 @@ public class SparseColumn extends Column {
     /**
      * Return how much Column elements store
      * in memory
+     *
      * @return size of this column
      */
     @Override
@@ -46,6 +48,7 @@ public class SparseColumn extends Column {
 
     /**
      * Human readable form of SparseColumn
+     *
      * @return String representation of SparseColumn
      */
     @Override
@@ -68,6 +71,6 @@ public class SparseColumn extends Column {
     }
 
     public void addElement(Value value, int index) {
-        cooValues.add(new COOValue(value,index));
+        cooValues.add(new COOValue(value, index));
     }
 }

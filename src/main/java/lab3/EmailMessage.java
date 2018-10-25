@@ -42,7 +42,7 @@ public class EmailMessage {
         }
 
         public Builder setTo(String... to) {
-            if(to.length != 0) {
+            if (to.length != 0) {
                 this.to = new LinkedList<>(Arrays.asList(to));
             }
             return this;
@@ -64,14 +64,14 @@ public class EmailMessage {
         }
 
         public Builder setCc(String... cc) {
-            if(cc.length != 0) {
+            if (cc.length != 0) {
                 this.cc = new LinkedList<>(Arrays.asList(cc));
             }
             return this;
         }
 
         public Builder setBcc(String... bcc) {
-            if(bcc.length != 0) {
+            if (bcc.length != 0) {
                 this.cc = new LinkedList<>(Arrays.asList(bcc));
             }
             return this;
@@ -125,11 +125,11 @@ public class EmailMessage {
 
     public static void main(String[] args) {
         EmailMessage emailMessage = EmailMessage.builder()
-                                                .setFrom("maciek@hehe.pl")
-                                                .setTo("kaamil","asia","jacek")
-                                                .setSubject("builder pattern")
-                                                .setContent("lolololololo")
-                                                .build();
+                .setFrom("maciek@hehe.pl")
+                .setTo("kaamil", "asia", "jacek")
+                .setSubject("builder pattern")
+                .setContent("lolololololo")
+                .build();
         System.out.println(emailMessage);
     }
 }

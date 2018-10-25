@@ -15,7 +15,8 @@ public class Column implements Cloneable {
      * Constructor for Column class,
      * if parameter name is not a primitive clazz, user have to pass Class name with
      * its full  path otherwise a ClassNotFoundException is thrown
-     * @param name Column name
+     *
+     * @param name  Column name
      * @param clazz Column class
      */
     public Column(String name, Class<? extends Value> clazz) {
@@ -27,19 +28,20 @@ public class Column implements Cloneable {
 
     /**
      * Insert the Object element to the Column
+     *
      * @param element Object to insert
-     * */
+     */
     public void addElement(Value element) {
-        if(clazz.isInstance(element)) {
+        if (clazz.isInstance(element)) {
             list.add(element);
         } else {
             throw new IllegalArgumentException();
         }
-
     }
 
     /**
      * Return the name of Column
+     *
      * @return name of the Column
      */
     public String getName() {
@@ -48,6 +50,7 @@ public class Column implements Cloneable {
 
     /**
      * Return class  which Column is holding
+     *
      * @return Column Class
      */
     public Class<? extends Value> getClazz() {
@@ -56,6 +59,7 @@ public class Column implements Cloneable {
 
     /**
      * Return the Value element at specified index
+     *
      * @param index element position
      * @return Value at specified index
      */
@@ -65,6 +69,7 @@ public class Column implements Cloneable {
 
     /**
      * Return the current size of this Column
+     *
      * @return int
      */
     public int size() {
@@ -73,6 +78,7 @@ public class Column implements Cloneable {
 
     /**
      * Return a String representation of this Column
+     *
      * @return String representation of this Column
      */
     @Override
@@ -85,6 +91,7 @@ public class Column implements Cloneable {
 
     /**
      * Returns a clone of this Column
+     *
      * @return new cloned Column
      */
     @Override
@@ -93,5 +100,4 @@ public class Column implements Cloneable {
         column.list = new ArrayList<>(list);
         return column;
     }
-
 }

@@ -12,6 +12,10 @@ public class IntegerValue extends Value {
         return value;
     }
 
+    public IntegerValue(String string) {
+        value = Integer.valueOf(string);
+    }
+
     @Override
     public String toString() {
         return Integer.toString(value);
@@ -19,7 +23,7 @@ public class IntegerValue extends Value {
 
     @Override
     public Value add(Value value) {
-        if(value instanceof IntegerValue) {
+        if (value instanceof IntegerValue) {
             Integer val = (Integer) value.getValue();
             return new IntegerValue(this.value + val);
         }
@@ -28,7 +32,7 @@ public class IntegerValue extends Value {
 
     @Override
     public Value sub(Value value) {
-        if(value instanceof IntegerValue) {
+        if (value instanceof IntegerValue) {
             Integer val = (Integer) value.getValue();
             return new IntegerValue(this.value - val);
         }
@@ -37,7 +41,7 @@ public class IntegerValue extends Value {
 
     @Override
     public Value mul(Value value) {
-        if(value instanceof IntegerValue) {
+        if (value instanceof IntegerValue) {
             Integer val = (Integer) value.getValue();
             return new IntegerValue(this.value * val);
         }
@@ -46,9 +50,9 @@ public class IntegerValue extends Value {
 
     @Override
     public Value div(Value value) {
-        if(value instanceof IntegerValue) {
+        if (value instanceof IntegerValue) {
             Integer val = (Integer) value.getValue();
-            if(val == 0) {
+            if (val == 0) {
                 throw new IllegalArgumentException();
             }
             return new IntegerValue(this.value / val);
@@ -58,7 +62,7 @@ public class IntegerValue extends Value {
 
     @Override
     public Value pow(Value value) {
-        if(value instanceof IntegerValue) {
+        if (value instanceof IntegerValue) {
             Integer val = (Integer) value.getValue();
             Integer output = 1;
             for (int i = 0; i < val; i++) {
@@ -71,7 +75,7 @@ public class IntegerValue extends Value {
 
     @Override
     public boolean eq(Value value) {
-        if(value instanceof IntegerValue) {
+        if (value instanceof IntegerValue) {
             Integer val = (Integer) value.getValue();
             return val.equals(this.value);
         }
@@ -80,16 +84,16 @@ public class IntegerValue extends Value {
 
     @Override
     public boolean lte(Value value) {
-        if(value instanceof IntegerValue) {
+        if (value instanceof IntegerValue) {
             Integer val = (Integer) value.getValue();
-            return val  < this.value;
+            return val < this.value;
         }
         return false;
     }
 
     @Override
     public boolean gte(Value value) {
-        if(value instanceof IntegerValue) {
+        if (value instanceof IntegerValue) {
             Integer val = (Integer) value.getValue();
             return val > this.value;
         }
@@ -98,7 +102,7 @@ public class IntegerValue extends Value {
 
     @Override
     public boolean neq(Value value) {
-        if(value instanceof IntegerValue) {
+        if (value instanceof IntegerValue) {
             Integer val = (Integer) value.getValue();
             return val != this.value;
         }

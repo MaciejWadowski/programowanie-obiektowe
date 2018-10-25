@@ -1,12 +1,15 @@
 package lab3;
 
-public class StringValue extends Value{
+public class StringValue extends Value {
 
     private String value;
 
     public StringValue(String value) {
         super();
         this.value = value;
+    }
+
+    private StringValue() {
     }
 
     @Override
@@ -26,7 +29,7 @@ public class StringValue extends Value{
 
     @Override
     public Value mul(Value value) {
-        if(value instanceof IntegerValue) {
+        if (value instanceof IntegerValue) {
             StringBuilder stringBuilder = new StringBuilder();
             for (int i = 0; i < ((IntegerValue) value).getValue(); i++) {
                 stringBuilder.append(this.value);
@@ -43,7 +46,7 @@ public class StringValue extends Value{
 
     @Override
     public Value pow(Value value) {
-        if(value instanceof IntegerValue) {
+        if (value instanceof IntegerValue) {
             return mul(value);
         }
         return new StringValue(this.value);
@@ -71,7 +74,7 @@ public class StringValue extends Value{
 
     @Override
     public boolean equals(Object other) {
-        if(other instanceof StringValue) {
+        if (other instanceof StringValue) {
             return this.value.equals(other.toString());
         }
         return false;

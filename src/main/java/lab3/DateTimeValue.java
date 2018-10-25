@@ -3,13 +3,16 @@ package lab3;
 import java.util.Date;
 
 @SuppressWarnings("deprecation")
-public class DateTimeValue extends Value{
+public class DateTimeValue extends Value {
     private Date date;
 
     public DateTimeValue(Date date) {
         this.date = date;
     }
 
+    public DateTimeValue(String string) {
+        date = new Date(string);
+    }
 
     @Override
     public String toString() {
@@ -18,20 +21,20 @@ public class DateTimeValue extends Value{
 
     @Override
     public Value add(Value value) {
-        if(value instanceof DateTimeValue) {
+        if (value instanceof DateTimeValue) {
             Date valueDate = (Date) value.getValue();
             return new DateTimeValue(new Date(this.date.getYear(),
-                                            this.date.getMonth(),
-                                            this.date.getDay(),
-                                            this.date.getHours() + valueDate.getHours(),
-                                            this.date.getMinutes() + valueDate.getMinutes()));
+                    this.date.getMonth(),
+                    this.date.getDay(),
+                    this.date.getHours() + valueDate.getHours(),
+                    this.date.getMinutes() + valueDate.getMinutes()));
         }
         throw new IllegalArgumentException();
     }
 
     @Override
     public Value sub(Value value) {
-        if(value instanceof DateTimeValue) {
+        if (value instanceof DateTimeValue) {
             Date valueDate = (Date) value.getValue();
             return new DateTimeValue(new Date(this.date.getYear(),
                     this.date.getMonth(),
@@ -59,7 +62,7 @@ public class DateTimeValue extends Value{
 
     @Override
     public boolean eq(Value value) {
-        if(value instanceof DateTimeValue) {
+        if (value instanceof DateTimeValue) {
             return this.date.compareTo((Date) value.getValue()) == 0;
         }
         return false;
@@ -67,7 +70,7 @@ public class DateTimeValue extends Value{
 
     @Override
     public boolean lte(Value value) {
-        if(value instanceof DateTimeValue) {
+        if (value instanceof DateTimeValue) {
             return this.date.compareTo((Date) value.getValue()) < 0;
         }
         return false;
@@ -75,7 +78,7 @@ public class DateTimeValue extends Value{
 
     @Override
     public boolean gte(Value value) {
-        if(value instanceof DateTimeValue) {
+        if (value instanceof DateTimeValue) {
             return this.date.compareTo((Date) value.getValue()) > 0;
         }
         return false;
@@ -83,7 +86,7 @@ public class DateTimeValue extends Value{
 
     @Override
     public boolean neq(Value value) {
-        if(value instanceof DateTimeValue) {
+        if (value instanceof DateTimeValue) {
             return this.date.compareTo((Date) value.getValue()) != 0;
         }
         return false;

@@ -9,6 +9,10 @@ public class DoubleValue extends Value {
         this.value = value;
     }
 
+    public DoubleValue(String string) {
+        value = Double.valueOf(string);
+    }
+
     @Override
     public String toString() {
         return value.toString();
@@ -16,7 +20,7 @@ public class DoubleValue extends Value {
 
     @Override
     public Value add(Value value) {
-        if(value instanceof DoubleValue) {
+        if (value instanceof DoubleValue) {
             return new DoubleValue(this.value + (double) value.getValue());
         }
         throw new IllegalArgumentException();
@@ -24,7 +28,7 @@ public class DoubleValue extends Value {
 
     @Override
     public Value sub(Value value) {
-        if(value instanceof DoubleValue) {
+        if (value instanceof DoubleValue) {
             return new DoubleValue(this.value - (double) value.getValue());
         }
         throw new IllegalArgumentException();
@@ -32,7 +36,7 @@ public class DoubleValue extends Value {
 
     @Override
     public Value mul(Value value) {
-        if(value instanceof DoubleValue) {
+        if (value instanceof DoubleValue) {
             return new DoubleValue(this.value * (double) value.getValue());
         }
         throw new IllegalArgumentException();
@@ -40,9 +44,9 @@ public class DoubleValue extends Value {
 
     @Override
     public Value div(Value value) {
-        if(value instanceof DoubleValue) {
+        if (value instanceof DoubleValue) {
             double val = (double) value.getValue();
-            if(val == 0.0) {
+            if (val == 0.0) {
                 throw new IllegalArgumentException();
             }
             return new DoubleValue(this.value / val);
@@ -52,7 +56,7 @@ public class DoubleValue extends Value {
 
     @Override
     public Value pow(Value value) {
-        if(value instanceof DoubleValue) {
+        if (value instanceof DoubleValue) {
             return new DoubleValue(Math.pow(this.value, (double) value.getValue()));
         }
         throw new IllegalArgumentException();
@@ -60,7 +64,7 @@ public class DoubleValue extends Value {
 
     @Override
     public boolean eq(Value value) {
-        if(value instanceof DoubleValue) {
+        if (value instanceof DoubleValue) {
             this.value.equals(value.getValue());
         }
         throw new IllegalArgumentException();
@@ -68,7 +72,7 @@ public class DoubleValue extends Value {
 
     @Override
     public boolean lte(Value value) {
-        if(value instanceof DoubleValue) {
+        if (value instanceof DoubleValue) {
             return this.value.compareTo((Double) value.getValue()) < 0;
         }
         throw new IllegalArgumentException();
@@ -76,15 +80,15 @@ public class DoubleValue extends Value {
 
     @Override
     public boolean gte(Value value) {
-        if(value instanceof DoubleValue) {
-            return this.value.compareTo((Double)value.getValue()) > 0;
+        if (value instanceof DoubleValue) {
+            return this.value.compareTo((Double) value.getValue()) > 0;
         }
         throw new IllegalArgumentException();
     }
 
     @Override
     public boolean neq(Value value) {
-        if(value instanceof DoubleValue) {
+        if (value instanceof DoubleValue) {
             this.value.equals(value.getValue());
         }
         throw new IllegalArgumentException();
