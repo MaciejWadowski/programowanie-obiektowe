@@ -114,6 +114,11 @@ public class FloatValue extends Value {
     }
 
     @Override
+    public Value clone() {
+        return new FloatValue(value);
+    }
+
+    @Override
     public Value create(String s) {
         return new FloatValue(Float.parseFloat(s));
     }

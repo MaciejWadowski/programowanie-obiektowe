@@ -120,6 +120,11 @@ public class IntegerValue extends Value {
     }
 
     @Override
+    public Value clone() {
+        return new IntegerValue(value);
+    }
+
+    @Override
     public Value create(String s) {
         return new IntegerValue(Integer.parseInt(s));
     }

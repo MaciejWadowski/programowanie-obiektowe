@@ -4,9 +4,10 @@ import lab3.DoubleValue;
 import lab3.IntegerValue;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         DataFrame dataFrame = new DataFrame(new String[]{"col1", "col2"}, new Class[]{IntegerValue.class, IntegerValue.class});
         dataFrame.addRow(new IntegerValue(1), new IntegerValue(2));
         dataFrame.addRow(new IntegerValue(3), new IntegerValue(4));

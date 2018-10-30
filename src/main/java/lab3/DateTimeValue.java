@@ -103,6 +103,11 @@ public class DateTimeValue extends Value {
     }
 
     @Override
+    public Value clone() {
+        return new DateTimeValue(date);
+    }
+
+    @Override
     public Value create(String s) {
         return new DateTimeValue(new Date(Date.parse(s)));
     }

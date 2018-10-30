@@ -82,7 +82,12 @@ public class StringValue extends Value {
 
     @Override
     public int hashCode() {
-        return 0;
+        return value.hashCode();
+    }
+
+    @Override
+    public Value clone() {
+        return new StringValue(value);
     }
 
     @Override

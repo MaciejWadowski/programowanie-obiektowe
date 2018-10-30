@@ -105,6 +105,11 @@ public class DoubleValue extends Value {
     }
 
     @Override
+    public Value clone() {
+        return new DoubleValue(value);
+    }
+
+    @Override
     public Value create(String s) {
         return new DoubleValue(Double.parseDouble(s));
     }

@@ -1,19 +1,24 @@
 package lab1.data.frame;
 
 import lab3.Value;
+import lab4.Applyable;
+import lab4.GroupBy;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 
-public class DataFrame {
+public class DataFrame implements GroupBy {
 
     private List<Column> columns;
 
@@ -51,7 +56,7 @@ public class DataFrame {
      * @param classes type
      * @throws IOException
      */
-    public DataFrame(String file, Class<? extends Value>[] classes) throws IOException {
+    public DataFrame(String file, Class<? extends Value>[] classes) throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
 
         FileInputStream fstream = new FileInputStream(file);
         BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
@@ -65,11 +70,15 @@ public class DataFrame {
 
         String strLine;
         Value[] values = new Value[columns.size()];
+        List<Constructor<? extends Value>> constructors = new ArrayList<>(classes.length);
+        for (int i = 0; i < classes.length; i++) {
+            constructors.add(classes[i].getConstructor(String.class));
+        }
 
         while ((strLine = br.readLine()) != null) {
             String[] str = strLine.split(",");
             for (int i = 0; i < str.length; i++) {
-                values[i] = Value.parse(str[i], classes[i]);
+                values[i] = constructors.get(i).newInstance(str[i]);
             }
             addRow(values.clone());
         }
@@ -222,5 +231,58 @@ public class DataFrame {
         Class[] classes = new Class[columns.size()];
         Arrays.setAll(classes, i ->  columns.get(i).getClazz());
         return classes;
+    }
+
+    public DataFrame groupBy(String[] colname) {
+        HashMap<Value, DataFrame> map = new HashMap<>(colname.length);
+        List<Column> columns = new ArrayList<>();
+        for (int i = 0; i < colname.length; i++) {
+            columns.add(getColumn(colname[i]));
+        }
+
+        for (var column: columns) {
+            for (int i = 0; i < column.size(); i++) {
+                if(!map.containsKey(column.getElement(i))) {
+                    map.put(column.getElement(i), new DataFrame(getColumnNames(),getClasses()));
+                }
+            }
+        }
+
+        return map;
+    }
+
+    @Override
+    public DataFrame max() {
+        return null;
+    }
+
+    @Override
+    public DataFrame min() {
+        return null;
+    }
+
+    @Override
+    public DataFrame mean() {
+        return null;
+    }
+
+    @Override
+    public DataFrame std() {
+        return null;
+    }
+
+    @Override
+    public DataFrame sum() {
+        return null;
+    }
+
+    @Override
+    public DataFrame var() {
+        return null;
+    }
+
+    @Override
+    public DataFrame apply(Applyable applyable) {
+        return null;
     }
 }

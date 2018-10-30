@@ -3,14 +3,19 @@ package lab2;
 import lab1.data.frame.Column;
 import lab1.data.frame.DataFrame;
 import lab3.Value;
+import lab4.Applyable;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SparseDataFrame extends DataFrame {
 
@@ -53,7 +58,9 @@ public class SparseDataFrame extends DataFrame {
      * @param classes type for column to hold
      * @throws IOException
      */
-    public SparseDataFrame(String file, Class<? extends Value>[] classes, Value argumentToHide) throws IOException {
+    public SparseDataFrame(String file, Class<? extends Value>[] classes, Value argumentToHide)
+            throws IOException, IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException {
+
         FileInputStream fstream = new FileInputStream(file);
         BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
         this.argumentToHide = argumentToHide;
@@ -66,10 +73,15 @@ public class SparseDataFrame extends DataFrame {
 
         String strLine;
         Value[] values = new Value[sparseColumnList.size()];
+        List<Constructor<? extends Value>> constructors = new ArrayList<>(classes.length);
+        for (int i = 0; i < classes.length; i++) {
+            constructors.add(classes[i].getConstructor(String.class));
+        }
+
         while ((strLine = br.readLine()) != null) {
             String[] str = strLine.split(",");
             for (int i = 0; i < str.length; i++) {
-                values[i] = Value.parse(str[i], classes[i]);
+                values[i] = constructors.get(i).newInstance(str[i]);
             }
             addRow(values.clone());
         }
@@ -345,5 +357,45 @@ public class SparseDataFrame extends DataFrame {
         Class[] classes = new Class[sparseColumnList.size()];
         Arrays.setAll(classes, i -> sparseColumnList.get(i).getClazz());
         return classes;
+    }
+
+    @Override
+    public HashMap<Value, DataFrame> groupBy(String[] colname) {
+
+    }
+
+    @Override
+    public DataFrame max() {
+        return super.max();
+    }
+
+    @Override
+    public DataFrame min() {
+        return super.min();
+    }
+
+    @Override
+    public DataFrame mean() {
+        return super.mean();
+    }
+
+    @Override
+    public DataFrame std() {
+        return super.std();
+    }
+
+    @Override
+    public DataFrame sum() {
+        return super.sum();
+    }
+
+    @Override
+    public DataFrame var() {
+        return super.var();
+    }
+
+    @Override
+    public DataFrame apply(Applyable applyable) {
+        return super.apply(applyable);
     }
 }
