@@ -359,43 +359,4 @@ public class SparseDataFrame extends DataFrame {
         return classes;
     }
 
-    @Override
-    public HashMap<Value, DataFrame> groupBy(String[] colname) {
-
-    }
-
-    @Override
-    public DataFrame max() {
-        return super.max();
-    }
-
-    @Override
-    public DataFrame min() {
-        return super.min();
-    }
-
-    @Override
-    public DataFrame mean() {
-        return super.mean();
-    }
-
-    @Override
-    public DataFrame std() {
-        return super.std();
-    }
-
-    @Override
-    public DataFrame sum() {
-        return super.sum();
-    }
-
-    @Override
-    public DataFrame var() {
-        return super.var();
-    }
-
-    @Override
-    public DataFrame apply(Applyable applyable) {
-        return super.apply(applyable);
-    }
 }

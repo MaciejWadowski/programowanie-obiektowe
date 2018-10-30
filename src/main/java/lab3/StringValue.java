@@ -9,9 +9,6 @@ public class StringValue extends Value {
         this.value = value;
     }
 
-    private StringValue() {
-    }
-
     @Override
     public String toString() {
         return value;

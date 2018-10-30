@@ -3,6 +3,7 @@ package lab1.data.frame;
 import lab3.Value;
 import lab4.Applyable;
 import lab4.GroupBy;
+import lab4.Operation;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -10,15 +11,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 
-public class DataFrame implements GroupBy {
+public class DataFrame implements Applyable{
 
     private List<Column> columns;
 
@@ -222,6 +220,12 @@ public class DataFrame implements GroupBy {
         return str;
     }
 
+    public Value[] getRow(int index) {
+        return columns.stream()
+                      .map(column -> column.getElement(index))
+                      .toArray(Value[]::new);
+    }
+
     /**
      * Return array of Column types
      *
@@ -233,56 +237,102 @@ public class DataFrame implements GroupBy {
         return classes;
     }
 
-    public DataFrame groupBy(String[] colname) {
-        HashMap<Value, DataFrame> map = new HashMap<>(colname.length);
-        List<Column> columns = new ArrayList<>();
-        for (int i = 0; i < colname.length; i++) {
-            columns.add(getColumn(colname[i]));
-        }
+    public DataFrameGroupBy groupBy(String[] colname) {
+        HashMap<List<Value>, DataFrame> map = new HashMap<>(colname.length);
+        List<Column> columns = Arrays.stream(colname)
+                                     .map(this::getColumn)
+                                     .collect(Collectors.toList());
 
-        for (var column: columns) {
-            for (int i = 0; i < column.size(); i++) {
-                if(!map.containsKey(column.getElement(i))) {
-                    map.put(column.getElement(i), new DataFrame(getColumnNames(),getClasses()));
-                }
+        List<Value> values = new ArrayList<>(columns.size());
+        for (int i = 0; i < size(); i++) {
+            for (var column: columns) {
+                values.add(column.getElement(i));
             }
+
+            if(map.containsKey(values)) {
+                map.put(values, iloc(i));
+            } else {
+                map.get(values).addRow(getRow(i));
+            }
+            values.clear();
         }
 
-        return map;
+        return new DataFrameGroupBy(map,colname);
     }
 
     @Override
-    public DataFrame max() {
+    public DataFrame apply(DataFrame dataFrame) {
         return null;
     }
 
-    @Override
-    public DataFrame min() {
-        return null;
+    private class DataFrameGroupBy implements GroupBy {
+
+        private HashMap<List<Value>, DataFrame> map;
+        private List<String> colNames;
+
+        public DataFrameGroupBy(HashMap<List<Value>, DataFrame> map, String[] colNames) {
+            this.map = map;
+            this.colNames = Arrays.asList(colNames);
+        }
+
+        private DataFrame operation(Operation operation) {
+            DataFrame dataFrame = new DataFrame(getColumnNames(), getClasses());
+            TreeSet<List<Value>> set = new TreeSet<>(map.keySet());
+            for (var values: set) {
+                List<Value> toAdd = new ArrayList<>(values);
+                DataFrame df = map.get(values);
+
+                for (var column: df.columns) {
+                    if(!colNames.contains(column.getName())) {
+                        toAdd.add(column.calculate(operation));
+                    }
+                }
+                dataFrame.addRow((Value[]) toAdd.toArray());
+            }
+            return dataFrame;
+        }
+
+        @Override
+        public DataFrame max() {
+            return operation(Operation.MAX);
+        }
+
+        @Override
+        public DataFrame min() {
+            return operation(Operation.MIN);
+        }
+
+        @Override
+        public DataFrame mean() {
+            return null;
+        }
+
+        @Override
+        public DataFrame std() {
+            return null;
+        }
+
+        @Override
+        public DataFrame sum() {
+            return null;
+        }
+
+        @Override
+        public DataFrame var() {
+            return null;
+        }
+
+        @Override
+        public DataFrame apply(Applyable applyable) {
+            return null;
+        }
+
+        @Override
+        public String toString() {
+            return "DataFrameGroupBy{" +
+                    "map=" + map +
+                    '}';
+        }
     }
 
-    @Override
-    public DataFrame mean() {
-        return null;
-    }
-
-    @Override
-    public DataFrame std() {
-        return null;
-    }
-
-    @Override
-    public DataFrame sum() {
-        return null;
-    }
-
-    @Override
-    public DataFrame var() {
-        return null;
-    }
-
-    @Override
-    public DataFrame apply(Applyable applyable) {
-        return null;
-    }
 }

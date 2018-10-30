@@ -94,6 +94,10 @@ public class DateTimeValue extends Value {
 
     @Override
     public boolean equals(Object other) {
+        if(other instanceof DateTimeValue) {
+            DateTimeValue dateTimeValue = (DateTimeValue) other;
+            return dateTimeValue.date.equals(date);
+        }
         return false;
     }
 

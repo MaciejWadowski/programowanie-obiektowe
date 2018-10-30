@@ -96,7 +96,11 @@ public class DoubleValue extends Value {
 
     @Override
     public boolean equals(Object other) {
-        return this.value.equals(other);
+        if(other instanceof DoubleValue) {
+            DoubleValue doubleValue = (DoubleValue) other;
+            return doubleValue.value.equals(value);
+        }
+        return false;
     }
 
     @Override

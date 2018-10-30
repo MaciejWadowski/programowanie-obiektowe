@@ -1,5 +1,7 @@
 package lab3;
 
+import java.util.Comparator;
+
 public abstract class Value implements Cloneable {
 
     public abstract String toString();

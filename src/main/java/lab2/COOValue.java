@@ -82,6 +82,11 @@ public class COOValue extends Value {
     }
 
     @Override
+    public Value clone() {
+        return new COOValue(value.clone(), index);
+    }
+
+    @Override
     public Value create(String s) {
         return this.value.create(s);
     }

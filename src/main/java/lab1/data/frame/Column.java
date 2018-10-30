@@ -1,11 +1,16 @@
 package lab1.data.frame;
 
 import lab3.Value;
+import lab4.Operation;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
-public class Column implements Cloneable {
+import static lab4.Operation.*;
+
+public class Column implements Cloneable{
 
     private String name;
     private Class<? extends Value> clazz;
@@ -99,5 +104,43 @@ public class Column implements Cloneable {
         Column column = new Column(name, clazz);
         column.list = new ArrayList<>(list);
         return column;
+    }
+
+    public Value calculate(Operation operation) {
+        switch (operation) {
+            case MAX:
+                return getMax();
+                default:
+                    return getMin();
+        }
+
+    }
+
+    public Value getMax() {
+        if(list.isEmpty()) {
+            return null;
+        }
+
+        Value max = list.get(0);
+        for (var value : list) {
+            if(value.gte(max)) {
+                max = value;
+            }
+        }
+        return max;
+    }
+
+    public Value getMin() {
+        if(list.isEmpty()) {
+            return null;
+        }
+
+        Value min = list.get(0);
+        for (var value : list) {
+            if(value.lte(min)) {
+                min = value;
+            }
+        }
+        return min;
     }
 }

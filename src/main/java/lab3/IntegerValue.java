@@ -111,7 +111,11 @@ public class IntegerValue extends Value {
 
     @Override
     public boolean equals(Object other) {
-        return value.equals(other);
+        if(other instanceof IntegerValue) {
+            IntegerValue integerValue = (IntegerValue) other;
+            return integerValue.value.equals(value);
+        }
+        return false;
     }
 
     @Override

@@ -105,7 +105,11 @@ public class FloatValue extends Value {
 
     @Override
     public boolean equals(Object other) {
-        return this.value.equals(other);
+        if(other instanceof FloatValue) {
+            FloatValue floatValue = (FloatValue) other;
+            return floatValue.value.equals(value);
+        }
+        return false;
     }
 
     @Override
