@@ -1,17 +1,20 @@
 package lab3;
 
-import java.util.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 
 @SuppressWarnings("deprecation")
 public class DateTimeValue extends Value {
-    private Date date;
+    private LocalDate date;
+    private SimpleDateFormat simpleDateFormat;
 
-    public DateTimeValue(Date date) {
+    public DateTimeValue(LocalDate date) {
         this.date = date;
     }
 
-    public DateTimeValue(String string) {
-        date = new Date(string);
+    public DateTimeValue(String string) throws ParseException {
+        date = LocalDate.parse(string);
     }
 
     @Override
@@ -22,12 +25,8 @@ public class DateTimeValue extends Value {
     @Override
     public Value add(Value value) {
         if (value instanceof DateTimeValue) {
-            Date valueDate = (Date) value.getValue();
-            return new DateTimeValue(new Date(this.date.getYear(),
-                    this.date.getMonth(),
-                    this.date.getDay(),
-                    this.date.getHours() + valueDate.getHours(),
-                    this.date.getMinutes() + valueDate.getMinutes()));
+            LocalDate valueDate = (LocalDate) value.getValue();
+            return new DateTimeValue(date.plusYears(valueDate.getYear()).plusDays(valueDate.getDayOfMonth()).plusMonths(valueDate.getMonthValue()));
         }
         throw new IllegalArgumentException();
     }
@@ -35,12 +34,8 @@ public class DateTimeValue extends Value {
     @Override
     public Value sub(Value value) {
         if (value instanceof DateTimeValue) {
-            Date valueDate = (Date) value.getValue();
-            return new DateTimeValue(new Date(this.date.getYear(),
-                    this.date.getMonth(),
-                    this.date.getDay(),
-                    this.date.getHours() - valueDate.getHours(),
-                    this.date.getMinutes() - valueDate.getMinutes()));
+            LocalDate valueDate = (LocalDate) value.getValue();
+            return new DateTimeValue(date.minusYears(valueDate.getYear()).minusDays(valueDate.getDayOfMonth()).minusMonths(valueDate.getMonthValue()));
         }
         throw new IllegalArgumentException();
     }
@@ -63,7 +58,7 @@ public class DateTimeValue extends Value {
     @Override
     public boolean eq(Value value) {
         if (value instanceof DateTimeValue) {
-            return this.date.compareTo((Date) value.getValue()) == 0;
+            return this.date.compareTo((LocalDate) value.getValue()) == 0;
         }
         return false;
     }
@@ -71,7 +66,7 @@ public class DateTimeValue extends Value {
     @Override
     public boolean lte(Value value) {
         if (value instanceof DateTimeValue) {
-            return this.date.compareTo((Date) value.getValue()) < 0;
+            return this.date.compareTo((LocalDate) value.getValue()) < 0;
         }
         return false;
     }
@@ -79,7 +74,7 @@ public class DateTimeValue extends Value {
     @Override
     public boolean gte(Value value) {
         if (value instanceof DateTimeValue) {
-            return this.date.compareTo((Date) value.getValue()) > 0;
+            return this.date.compareTo((LocalDate) value.getValue()) > 0;
         }
         return false;
     }
@@ -87,7 +82,7 @@ public class DateTimeValue extends Value {
     @Override
     public boolean neq(Value value) {
         if (value instanceof DateTimeValue) {
-            return this.date.compareTo((Date) value.getValue()) != 0;
+            return this.date.compareTo((LocalDate) value.getValue()) != 0;
         }
         return false;
     }
@@ -113,11 +108,15 @@ public class DateTimeValue extends Value {
 
     @Override
     public Value create(String s) {
-        return new DateTimeValue(new Date(Date.parse(s)));
+        try {
+            return new DateTimeValue(s);
+        } catch (ParseException e) {
+            throw new IllegalArgumentException();
+        }
     }
 
     @Override
-    public Date getValue() {
+    public LocalDate getValue() {
         return this.date;
     }
 }

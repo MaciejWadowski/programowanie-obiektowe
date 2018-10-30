@@ -114,6 +114,16 @@ public class DataFrame implements Applyable{
         return true;
     }
 
+    public boolean addRow(List<Value> values) {
+        if (columns.size() != values.size()) {
+            return false;
+        }
+
+        IntStream.range(0, columns.size())
+                .forEach(i -> columns.get(i).addElement(values.get(i)));
+        return true;
+    }
+
     /**
      * Returns actual amount of rows in DataFrame(every Column has the same amount of rows)
      *
@@ -237,24 +247,24 @@ public class DataFrame implements Applyable{
         return classes;
     }
 
-    public DataFrameGroupBy groupBy(String[] colname) {
+    public DataFrameGroupBy groupBy(String... colname) {
         HashMap<List<Value>, DataFrame> map = new HashMap<>(colname.length);
         List<Column> columns = Arrays.stream(colname)
                                      .map(this::getColumn)
                                      .collect(Collectors.toList());
 
-        List<Value> values = new ArrayList<>(columns.size());
         for (int i = 0; i < size(); i++) {
+            List<Value> values = new ArrayList<>(columns.size());
+
             for (var column: columns) {
                 values.add(column.getElement(i));
             }
 
-            if(map.containsKey(values)) {
+            if(!map.containsKey(values)) {
                 map.put(values, iloc(i));
             } else {
                 map.get(values).addRow(getRow(i));
             }
-            values.clear();
         }
 
         return new DataFrameGroupBy(map,colname);
@@ -265,7 +275,7 @@ public class DataFrame implements Applyable{
         return null;
     }
 
-    private class DataFrameGroupBy implements GroupBy {
+    public class DataFrameGroupBy implements GroupBy {
 
         private HashMap<List<Value>, DataFrame> map;
         private List<String> colNames;
@@ -277,8 +287,7 @@ public class DataFrame implements Applyable{
 
         private DataFrame operation(Operation operation) {
             DataFrame dataFrame = new DataFrame(getColumnNames(), getClasses());
-            TreeSet<List<Value>> set = new TreeSet<>(map.keySet());
-            for (var values: set) {
+            for (var values: map.keySet()) {
                 List<Value> toAdd = new ArrayList<>(values);
                 DataFrame df = map.get(values);
 
@@ -287,7 +296,7 @@ public class DataFrame implements Applyable{
                         toAdd.add(column.calculate(operation));
                     }
                 }
-                dataFrame.addRow((Value[]) toAdd.toArray());
+                dataFrame.addRow(toAdd);
             }
             return dataFrame;
         }
