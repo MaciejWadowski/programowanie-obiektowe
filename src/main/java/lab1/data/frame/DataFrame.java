@@ -313,34 +313,27 @@ public class DataFrame implements Applyable{
 
         @Override
         public DataFrame mean() {
-            return null;
+            return operation(Operation.MEAN);
         }
 
         @Override
         public DataFrame std() {
-            return null;
+            return operation(Operation.STD);
         }
 
         @Override
         public DataFrame sum() {
-            return null;
+            return operation(Operation.SUM);
         }
 
         @Override
         public DataFrame var() {
-            return null;
+            return operation(Operation.VAR);
         }
 
         @Override
         public DataFrame apply(Applyable applyable) {
-            return null;
-        }
-
-        @Override
-        public String toString() {
-            return "DataFrameGroupBy{" +
-                    "map=" + map +
-                    '}';
+            return applyable.apply(DataFrame.this);
         }
     }
 

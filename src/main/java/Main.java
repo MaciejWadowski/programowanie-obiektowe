@@ -11,7 +11,6 @@ public class Main {
         DataFrame dataFrame = new DataFrame("/home/maciej/IdeaProjects/ProgramowanieObiektowe/src/main/resources/groupby.csv",
                                     new Class[]{StringValue.class, DateTimeValue.class, DoubleValue.class, DoubleValue.class});
 
-        System.out.println(dataFrame.groupBy("id").max());
-        System.out.println(dataFrame.groupBy("id").min());
+        System.out.println(dataFrame.groupBy("id").mean());
     }
 }

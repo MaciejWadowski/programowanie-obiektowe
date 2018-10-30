@@ -50,6 +50,9 @@ public class DoubleValue extends Value {
                 throw new IllegalArgumentException();
             }
             return new DoubleValue(this.value / val);
+        } else if (value instanceof IntegerValue) {
+            int val = (int) value.getValue();
+            return new DoubleValue(this.value / val);
         }
         throw new IllegalArgumentException();
     }

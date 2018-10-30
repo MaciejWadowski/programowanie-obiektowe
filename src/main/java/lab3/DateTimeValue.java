@@ -17,8 +17,13 @@ public class DateTimeValue extends Value {
         date = LocalDate.parse(string);
     }
 
+    public DateTimeValue() {}
+
     @Override
     public String toString() {
+        if(date == null) {
+            return "null";
+        }
         return date.toString();
     }
 

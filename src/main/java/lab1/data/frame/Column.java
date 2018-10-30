@@ -1,14 +1,13 @@
 package lab1.data.frame;
 
+import lab3.DateTimeValue;
+import lab3.IntegerValue;
+import lab3.StringValue;
 import lab3.Value;
 import lab4.Operation;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-
-import static lab4.Operation.*;
 
 public class Column implements Cloneable{
 
@@ -110,10 +109,15 @@ public class Column implements Cloneable{
         switch (operation) {
             case MAX:
                 return getMax();
-                default:
-                    return getMin();
-        }
+            case MIN:
+                return getMin();
+            case SUM:
+                return getSum();
+            case MEAN:
+                return getMean();
 
+        }
+        return new IntegerValue(0);
     }
 
     public Value getMax() {
@@ -142,5 +146,31 @@ public class Column implements Cloneable{
             }
         }
         return min;
+    }
+
+    public Value getMean() {
+        if(list.isEmpty()) {
+            return null;
+        }
+
+        Value sum = getSum();
+        return sum.div(new IntegerValue(list.size()));
+    }
+
+    public Value getSum() {
+        if (list.isEmpty()) {
+            return null;
+        } else if (clazz == DateTimeValue.class) {
+            return new DateTimeValue();
+        } else if (clazz == StringValue.class) {
+            return new StringValue("null");
+        }
+
+        Value firstValue = list.get(0).clone();
+        Value sum = list.get(0);
+        for (var value : list) {
+            sum = sum.add(value);
+        }
+        return sum.sub(firstValue);
     }
 }

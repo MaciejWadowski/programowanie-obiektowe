@@ -52,6 +52,9 @@ public class FloatValue extends Value {
                 throw new IllegalArgumentException();
             }
             return new FloatValue(this.value / val);
+        } else if(value instanceof IntegerValue) {
+            int val = (int) value.getValue();
+            return new FloatValue(this.value / val);
         }
         throw new IllegalArgumentException();
     }
