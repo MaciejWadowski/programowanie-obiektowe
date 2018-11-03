@@ -1,5 +1,7 @@
 package lab1.data.frame;
 
+import lab3.DateTimeValue;
+import lab3.StringValue;
 import lab3.Value;
 import lab4.Applyable;
 import lab4.GroupBy;
@@ -11,12 +13,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 
-public class DataFrame implements Applyable{
+public class DataFrame {
 
     private List<Column> columns;
 
@@ -105,7 +110,7 @@ public class DataFrame implements Applyable{
      * @return true if amount of passed objects match to amount of Columns and Objects to each Column have same type
      */
     public boolean addRow(Value... values) {
-        if (columns.size() != values.length) {
+        if (columns.size() != values.length) { ;
             return false;
         }
 
@@ -114,11 +119,14 @@ public class DataFrame implements Applyable{
         return true;
     }
 
-    public boolean addRow(List<Value> values) {
-        if (columns.size() != values.size()) {
-            return false;
-        }
 
+    /**
+     * Used only for inner class
+     *
+     * @param values
+     * @return
+     */
+    private boolean addRow(List<Value> values) {
         IntStream.range(0, columns.size())
                 .forEach(i -> columns.get(i).addElement(values.get(i)));
         return true;
@@ -140,9 +148,19 @@ public class DataFrame implements Applyable{
      */
     @Override
     public String toString() {
-        return columns.stream()
-                .map(c -> c.toString() + "\n")
-                .collect(Collectors.joining());
+        StringBuilder stringBuilder = new StringBuilder();
+        for (var s: columns) {
+            stringBuilder.append(s.getName()).append("\t\t");
+        }
+        stringBuilder.append('\n');
+
+        for (int i = 0; i < size(); i++) {
+            for (var value: columns) {
+                stringBuilder.append(value.getElement(i)).append('\t');
+            }
+            stringBuilder.append('\n');
+        }
+        return stringBuilder.toString();
     }
 
     /**
@@ -247,6 +265,13 @@ public class DataFrame implements Applyable{
         return classes;
     }
 
+    /**
+     * Return inner Class with sorted DataFrames
+     * by values in Column with specified names
+     *
+     * @param colname Column names, by which DataFrame is sorted
+     * @return Inner DataFrame
+     */
     public DataFrameGroupBy groupBy(String... colname) {
         HashMap<List<Value>, DataFrame> map = new HashMap<>(colname.length);
         List<Column> columns = Arrays.stream(colname)
@@ -270,11 +295,6 @@ public class DataFrame implements Applyable{
         return new DataFrameGroupBy(map,colname);
     }
 
-    @Override
-    public DataFrame apply(DataFrame dataFrame) {
-        return null;
-    }
-
     public class DataFrameGroupBy implements GroupBy {
 
         private HashMap<List<Value>, DataFrame> map;
@@ -285,15 +305,45 @@ public class DataFrame implements Applyable{
             this.colNames = Arrays.asList(colNames);
         }
 
-        private DataFrame operation(Operation operation) {
-            DataFrame dataFrame = new DataFrame(getColumnNames(), getClasses());
+        private DataFrame operation(Operation operation, boolean toDrop) {
+            DataFrame dataFrame;
+
+            // block of code to remove columns, which can't perform certain calculations
+            if (toDrop) {
+                List<Class<? extends Value>> classList = new ArrayList<>(List.of(getClasses()));
+                ArrayList<String> nameList = new ArrayList<>(List.of(getColumnNames()));
+                List<Integer> namesToRemove = new ArrayList<>();
+
+                for (int i = 0; i < classList.size(); i++) {
+                    if((classList.get(i).equals(StringValue.class) || classList.get(i).equals(DateTimeValue.class)) && !colNames.contains(nameList.get(i))) {
+                        namesToRemove.add(i);
+                    }
+                }
+
+                for (int i = namesToRemove.size() - 1; i >= 0; i--) {
+                    nameList.remove((int)namesToRemove.get(i));
+                    classList.remove((int)namesToRemove.get(i));
+                }
+
+                String[] names = nameList.toArray(String[]::new);
+                Class[] classes = classList.toArray(Class[]::new);
+
+                dataFrame = new DataFrame(names, classes);
+            } else {
+                dataFrame = new DataFrame(getColumnNames(), getClasses());
+            }
+
             for (var values: map.keySet()) {
                 List<Value> toAdd = new ArrayList<>(values);
                 DataFrame df = map.get(values);
 
                 for (var column: df.columns) {
                     if(!colNames.contains(column.getName())) {
-                        toAdd.add(column.calculate(operation));
+                        if(toDrop && !(column.getClazz().equals(DateTimeValue.class) || column.getClazz().equals(StringValue.class))) {
+                            toAdd.add(column.calculate(operation));
+                        } else if(!toDrop) {
+                            toAdd.add(column.calculate(operation));
+                        }
                     }
                 }
                 dataFrame.addRow(toAdd);
@@ -303,32 +353,32 @@ public class DataFrame implements Applyable{
 
         @Override
         public DataFrame max() {
-            return operation(Operation.MAX);
+            return operation(Operation.MAX, false);
         }
 
         @Override
         public DataFrame min() {
-            return operation(Operation.MIN);
+            return operation(Operation.MIN, false);
         }
 
         @Override
         public DataFrame mean() {
-            return operation(Operation.MEAN);
+            return operation(Operation.MEAN, true);
         }
 
         @Override
         public DataFrame std() {
-            return operation(Operation.STD);
+            return operation(Operation.STD, true);
         }
 
         @Override
         public DataFrame sum() {
-            return operation(Operation.SUM);
+            return operation(Operation.SUM, true);
         }
 
         @Override
         public DataFrame var() {
-            return operation(Operation.VAR);
+            return operation(Operation.VAR, true);
         }
 
         @Override
@@ -336,5 +386,4 @@ public class DataFrame implements Applyable{
             return applyable.apply(DataFrame.this);
         }
     }
-
 }
