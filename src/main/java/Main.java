@@ -1,17 +1,20 @@
-import lab1.data.frame.DataFrame;
-import lab3.DateTimeValue;
-import lab3.DoubleValue;
-import lab3.StringValue;
-import lab4.Median;
-
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
+import lab1.data.frame.Column;
+import lab3.IntegerValue;
 
 public class Main {
-    public static void main(String[] args) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        DataFrame dataFrame = new DataFrame("/home/maciej/IdeaProjects/ProgramowanieObiektowe/src/main/resources/groupby.csv",
-                                    new Class[]{StringValue.class, DateTimeValue.class, DoubleValue.class, DoubleValue.class});
+    public static void main(String[] args) {
+//        DataFrame dataFrame = new DataFrame("/home/maciej/IdeaProjects/ProgramowanieObiektowe/src/main/resources/groupby.csv",
+//                                    new Class[]{StringValue.class, DateTimeValue.class, FloatValue.class, FloatValue.class});
+//
+//        System.out.println(dataFrame.groupBy("id").apply(new Median()));
 
-        System.out.println(dataFrame.groupBy("id").apply(new Median()));
+        Column column = new Column("column", IntegerValue.class);
+        for (int i = 0; i <= 10; i++) {
+            column.addElement(new IntegerValue(i));
+        }
+        System.out.println(column);
+        System.out.println(column.getMax());
+        System.out.println(column.getMin());
+
     }
 }

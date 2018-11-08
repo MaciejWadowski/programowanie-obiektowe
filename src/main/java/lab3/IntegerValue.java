@@ -13,6 +13,9 @@ public class IntegerValue extends Value {
     }
 
     public IntegerValue(String string) {
+        if(string.contains(".")) {
+            value = Integer.valueOf(string.substring(0, string.indexOf(".")));
+        }
         value = Integer.valueOf(string);
     }
 

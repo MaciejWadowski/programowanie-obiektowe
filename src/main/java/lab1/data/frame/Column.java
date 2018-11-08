@@ -1,11 +1,11 @@
 package lab1.data.frame;
 
-import lab3.DoubleValue;
-import lab3.FloatValue;
 import lab3.IntegerValue;
 import lab3.Value;
 import lab4.Operation;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -124,7 +124,11 @@ public class Column implements Cloneable{
         return new IntegerValue(0);
     }
 
-    public Value getMax() {
+    /**
+     * Return maximum value from Column
+     * @return maixmum value
+     */
+    public Value getMin() {
         if(list.isEmpty()) {
             return null;
         }
@@ -138,7 +142,11 @@ public class Column implements Cloneable{
         return max;
     }
 
-    public Value getMin() {
+    /**
+     * Return minimum value from Column
+     * @return minimum value
+     */
+    public Value getMax() {
         if(list.isEmpty()) {
             return null;
         }
@@ -152,6 +160,11 @@ public class Column implements Cloneable{
         return min;
     }
 
+    /**
+     * Return mean from all Values stored in Column
+     * for DateTimeValue and StringValue IllegalArgumentException is thrown
+     * @return mean from column values
+     */
     public Value getMean() {
         if(list.isEmpty()) {
             return null;
@@ -161,6 +174,11 @@ public class Column implements Cloneable{
         return sum.div(new IntegerValue(list.size()));
     }
 
+    /**
+     * Return sum from all Values stored in Column
+     * for DateTimeValue and StringValue IllegalArgumentException is thrown
+     * @return mean from column values
+     */
     public Value getSum() {
         if (list.isEmpty()) {
             return null;
@@ -174,48 +192,39 @@ public class Column implements Cloneable{
         return sum.sub(firstValue);
     }
 
+    /**
+     * Return sum from all Values stored in Column
+     * for DateTimeValue and StringValue IllegalArgumentException is thrown
+     * @return mean from column values
+     */
     public Value getStd() {
-        if(list.isEmpty()) {
-            return null;
+        try {
+            Constructor<? extends Value> constructor = clazz.getConstructor(String.class);
+            return constructor.newInstance(Double.toString(Math.sqrt(Double.parseDouble(getVar().toString()))));
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
         }
-
-        Value var = getVar();
-
-        if(clazz == IntegerValue.class) {
-            return new IntegerValue((int)Math.sqrt(Double.parseDouble(var.toString())));
-        } else if (clazz == FloatValue.class) {
-            return new FloatValue((float) Math.sqrt(Double.parseDouble(var.toString())));
-        } else if (clazz == DoubleValue.class) {
-            return new DoubleValue(Math.sqrt((double)var.getValue()));
-        }
-
         throw new IllegalArgumentException("Bad Column type: " + clazz);
     }
 
+    /**
+     * Return sum from all Values stored in Column
+     * for DateTimeValue and StringValue IllegalArgumentException is thrown
+     * @return mean from column values
+     */
     public Value getVar() {
         Value mean = getMean();
 
-        if(clazz == IntegerValue.class) {
-            IntegerValue output = new IntegerValue(0);
-            IntegerValue powVal = new IntegerValue(2);
-            for (var value: list) {
-                output = (IntegerValue) output.add(value.sub(mean).pow(powVal));
+        try {
+            Constructor<? extends Value> constructor = clazz.getConstructor(String.class);
+            Value output = constructor.newInstance("0");
+            Value powVal = constructor.newInstance("2");
+            for(var value: list) {
+                output = output.add(value.sub(mean).pow(powVal));
             }
-            return output.div((new IntegerValue(list.size())));
-        } else if (clazz == DoubleValue.class) {
-            DoubleValue output = new DoubleValue(0.0);
-            DoubleValue powVal = new DoubleValue(2.0);
-            for (var value: list) {
-                output = (DoubleValue) output.add(value.sub(mean).pow(powVal));
-            }
-            return output.div((new DoubleValue(list.size())));
-        } else if(clazz == FloatValue.class) {
-            FloatValue output = new FloatValue((float)0.0);
-            FloatValue powVal = new FloatValue((float)2.0);
-            for (var value: list) {
-                output = (FloatValue) output.add(value.sub(mean).pow(powVal));
-            }
-            return output.div((new FloatValue(list.size())));
+            return output.div(new IntegerValue(list.size()));
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+            e.printStackTrace();
         }
 
         throw new IllegalArgumentException("Bad Column type " + clazz);

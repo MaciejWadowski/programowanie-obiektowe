@@ -26,5 +26,5 @@ hs_err_pid*
 
 .idea/
 *.iml
-src/test/
+src/test/java/lab2
 *.csv
