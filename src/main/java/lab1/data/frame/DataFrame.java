@@ -7,10 +7,7 @@ import lab4.Applyable;
 import lab4.GroupBy;
 import lab4.Operation;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -57,36 +54,34 @@ public class DataFrame {
      *
      * @param file    CSV file
      * @param classes type
-     * @throws IOException
-     */
-    public DataFrame(String file, Class<? extends Value>[] classes) throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+     **/
+    public DataFrame(String file, Class<? extends Value>[] classes) {
 
-        FileInputStream fstream = new FileInputStream(file);
-        BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
+            String[] columnNames = bufferedReader.readLine().split(",");
+            columns = new ArrayList<>();
 
-        String[] columnNames = br.readLine().split(",");
-        columns = new ArrayList<>();
-
-        for (int i = 0; i < classes.length; i++) {
-            columns.add(new Column(columnNames[i], classes[i]));
-        }
-
-        String strLine;
-        Value[] values = new Value[columns.size()];
-        List<Constructor<? extends Value>> constructors = new ArrayList<>(classes.length);
-        for (int i = 0; i < classes.length; i++) {
-            constructors.add(classes[i].getConstructor(String.class));
-        }
-
-        while ((strLine = br.readLine()) != null) {
-            String[] str = strLine.split(",");
-            for (int i = 0; i < str.length; i++) {
-                values[i] = constructors.get(i).newInstance(str[i]);
+            for (int i = 0; i < classes.length; i++) {
+                columns.add(new Column(columnNames[i], classes[i]));
             }
-            addRow(values.clone());
-        }
 
-        br.close();
+            String strLine;
+            Value[] values = new Value[columns.size()];
+            List<Constructor<? extends Value>> constructors = new ArrayList<>(classes.length);
+            for (int i = 0; i < classes.length; i++) {
+                constructors.add(classes[i].getConstructor(String.class));
+            }
+
+            while ((strLine = bufferedReader.readLine()) != null) {
+                String[] str = strLine.split(",");
+                for (int i = 0; i < str.length; i++) {
+                    values[i] = constructors.get(i).newInstance(str[i]);
+                }
+                addRow(values.clone());
+            }
+        } catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException |InstantiationException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -109,14 +104,13 @@ public class DataFrame {
      * @param values Objects to add to DataFrame
      * @return true if amount of passed objects match to amount of Columns and Objects to each Column have same type
      */
-    public boolean addRow(Value... values) {
-        if (columns.size() != values.length) { ;
-            return false;
+    public void addRow(Value... values) {
+        if (columns.size() != values.length) {
+            throw new IndexOutOfBoundsException();
         }
 
         IntStream.range(0, columns.size())
                 .forEach(i -> columns.get(i).addElement(values[i]));
-        return true;
     }
 
 
@@ -126,10 +120,9 @@ public class DataFrame {
      * @param values
      * @return
      */
-    private boolean addRow(List<Value> values) {
+    private void addRow(List<Value> values) {
         IntStream.range(0, columns.size())
                 .forEach(i -> columns.get(i).addElement(values.get(i)));
-        return true;
     }
 
     /**
@@ -300,10 +293,25 @@ public class DataFrame {
         private HashMap<List<Value>, DataFrame> map;
         private List<String> colNames;
 
+        /**
+         * Constructor for inner DataFrame class
+         * @param map organized map with small DataFrames
+         * @param colNames column names, which outer DataFrame is grouped by
+         */
+
         public DataFrameGroupBy(HashMap<List<Value>, DataFrame> map, String[] colNames) {
             this.map = map;
             this.colNames = Arrays.asList(colNames);
         }
+
+        /**
+         * Method used to calculate all implemented operations,
+         * with toDrop boolean variable, to decide if Value classes
+         * like DateTimeValue should be on output
+         * @param operation Enum value, to choose which operation invoke
+         * @param toDrop boolean value, if true, method won't perform operations on DateTimeValue and StrinValue
+         * @return DataFrame with results for each keys
+         */
 
         private DataFrame operation(Operation operation, boolean toDrop) {
             DataFrame dataFrame;
@@ -333,11 +341,11 @@ public class DataFrame {
                 dataFrame = new DataFrame(getColumnNames(), getClasses());
             }
 
-            for (var values: map.keySet()) {
-                List<Value> toAdd = new ArrayList<>(values);
-                DataFrame df = map.get(values);
+            for (var keys: map.keySet()) {
+                List<Value> toAdd = new ArrayList<>(keys);
+                DataFrame dataFrameWithIdValues = map.get(keys);
 
-                for (var column: df.columns) {
+                for (var column: dataFrameWithIdValues.columns) {
                     if(!colNames.contains(column.getName())) {
                         if(toDrop && !(column.getClazz().equals(DateTimeValue.class) || column.getClazz().equals(StringValue.class))) {
                             toAdd.add(column.calculate(operation));
@@ -383,7 +391,23 @@ public class DataFrame {
 
         @Override
         public DataFrame apply(Applyable applyable) {
-            return applyable.apply(DataFrame.this);
+            List<DataFrame> dataFrames = map.keySet().stream()
+                                                     .map(e -> applyable.apply(map.get(e)))
+                                                     .collect(Collectors.toList());
+
+            if(!dataFrames.isEmpty()) {
+                DataFrame outputDataFrame = new DataFrame(dataFrames.get(0).getColumnNames(), dataFrames.get(0).getClasses());
+                dataFrames.stream()
+                          .map(dataFrame -> dataFrame.getRow(0)) //because all DataFrames with outputs have only one row
+                          .forEach(outputDataFrame::addRow);
+
+                return outputDataFrame;
+            }
+            throw new IllegalArgumentException("List of DataFrames is empty");
+        }
+
+        public HashMap<List<Value>, DataFrame> getMap() {
+            return map;
         }
     }
 }

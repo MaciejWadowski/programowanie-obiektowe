@@ -3,7 +3,6 @@ package lab2;
 import lab1.data.frame.Column;
 import lab1.data.frame.DataFrame;
 import lab3.Value;
-import lab4.Applyable;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -13,9 +12,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class SparseDataFrame extends DataFrame {
 
@@ -97,9 +94,9 @@ public class SparseDataFrame extends DataFrame {
      * @return true if any element isn't argumentToHide
      */
     @Override
-    public boolean addRow(Value... values) {
+    public void addRow(Value... values) {
         if (values.length != sparseColumnList.size()) {
-            return false;
+            throw new IllegalArgumentException();
         }
 
         boolean toAdd = true;
@@ -120,9 +117,9 @@ public class SparseDataFrame extends DataFrame {
                 i++;
             }
             size++;
-            return true;
+        } else {
+            throw new IllegalArgumentException();
         }
-        return false;
     }
 
     /**
