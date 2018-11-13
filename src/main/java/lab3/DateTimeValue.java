@@ -1,27 +1,24 @@
 package lab3;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 
-@SuppressWarnings("deprecation")
 public class DateTimeValue extends Value {
     private LocalDate date;
-    private SimpleDateFormat simpleDateFormat;
 
     public DateTimeValue(LocalDate date) {
         this.date = date;
     }
 
-    public DateTimeValue(String string) throws ParseException {
+    public DateTimeValue(String string) {
         date = LocalDate.parse(string);
     }
 
-    public DateTimeValue() {}
+    public DateTimeValue() {
+    }
 
     @Override
     public String toString() {
-        if(date == null) {
+        if (date == null) {
             return "null";
         }
         return date.toString();
@@ -94,7 +91,7 @@ public class DateTimeValue extends Value {
 
     @Override
     public boolean equals(Object other) {
-        if(other instanceof DateTimeValue) {
+        if (other instanceof DateTimeValue) {
             DateTimeValue dateTimeValue = (DateTimeValue) other;
             return dateTimeValue.date.equals(date);
         }
@@ -113,11 +110,7 @@ public class DateTimeValue extends Value {
 
     @Override
     public Value create(String s) {
-        try {
-            return new DateTimeValue(s);
-        } catch (ParseException e) {
-            throw new IllegalArgumentException();
-        }
+        return new DateTimeValue(s);
     }
 
     @Override

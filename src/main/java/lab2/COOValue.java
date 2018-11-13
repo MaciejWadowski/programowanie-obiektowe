@@ -28,52 +28,82 @@ public class COOValue extends Value {
 
     @Override
     public Value add(Value value) {
+        if (value instanceof COOValue) {
+            return this.value.add(((COOValue) value).getValue());
+        }
         return this.value.add(value);
     }
 
     @Override
     public Value sub(Value value) {
+        if (value instanceof COOValue) {
+            return this.value.sub(((COOValue) value).getValue());
+        }
         return this.value.sub(value);
     }
 
     @Override
     public Value mul(Value value) {
+        if (value instanceof COOValue) {
+            return this.value.mul(((COOValue) value).getValue());
+        }
         return this.value.mul(value);
     }
 
     @Override
     public Value div(Value value) {
+        if (value instanceof COOValue) {
+            return this.value.div(((COOValue) value).getValue());
+        }
         return this.value.div(value);
     }
 
     @Override
     public Value pow(Value value) {
+        if (value instanceof COOValue) {
+            return this.value.pow(((COOValue) value).getValue());
+        }
         return this.value.pow(value);
     }
 
     @Override
     public boolean eq(Value value) {
+        if (value instanceof COOValue) {
+            return this.value.eq(((COOValue) value).getValue());
+        }
         return this.value.eq(value);
     }
 
     @Override
     public boolean lte(Value value) {
+        if (value instanceof COOValue) {
+            return this.value.lte(((COOValue) value).getValue());
+        }
         return this.value.lte(value);
     }
 
     @Override
     public boolean gte(Value value) {
+        if (value instanceof COOValue) {
+            return this.value.gte(((COOValue) value).getValue());
+        }
         return this.value.gte(value);
     }
 
     @Override
     public boolean neq(Value value) {
+        if (value instanceof COOValue) {
+            return this.value.neq(((COOValue) value).getValue());
+        }
         return this.value.neq(value);
     }
 
     @Override
     public boolean equals(Object other) {
-        return this.value.equals(other);
+        if (value instanceof COOValue) {
+            return this.value.equals(((COOValue) value).getValue()) && this.index == ((COOValue) value).getIndex();
+        }
+        return false;
     }
 
     @Override

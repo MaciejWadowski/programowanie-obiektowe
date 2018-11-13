@@ -23,7 +23,7 @@ public class FloatValue extends Value {
             Float val = (Float) value.getValue();
             return new FloatValue(this.value + val);
         }
-        throw new IllegalArgumentException();
+        throw new IllegalArgumentException("");
     }
 
     @Override
@@ -52,7 +52,7 @@ public class FloatValue extends Value {
                 throw new IllegalArgumentException();
             }
             return new FloatValue(this.value / val);
-        } else if(value instanceof IntegerValue) {
+        } else if (value instanceof IntegerValue) {
             int val = (int) value.getValue();
             return new FloatValue(this.value / val);
         }
@@ -108,7 +108,7 @@ public class FloatValue extends Value {
 
     @Override
     public boolean equals(Object other) {
-        if(other instanceof FloatValue) {
+        if (other instanceof FloatValue) {
             FloatValue floatValue = (FloatValue) other;
             return floatValue.value.equals(value);
         }

@@ -4,10 +4,7 @@ import lab1.data.frame.Column;
 import lab1.data.frame.DataFrame;
 import lab3.Value;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -53,37 +50,34 @@ public class SparseDataFrame extends DataFrame {
      *
      * @param file    csv file to read
      * @param classes type for column to hold
-     * @throws IOException
      */
-    public SparseDataFrame(String file, Class<? extends Value>[] classes, Value argumentToHide)
-            throws IOException, IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException {
+    public SparseDataFrame(String file, Class<? extends Value>[] classes, Value argumentToHide) {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
+            this.argumentToHide = argumentToHide;
 
-        FileInputStream fstream = new FileInputStream(file);
-        BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
-        this.argumentToHide = argumentToHide;
-
-        String[] columnNames = br.readLine().split(",");
-        sparseColumnList = new ArrayList<>();
-        for (int i = 0; i < classes.length; i++) {
-            sparseColumnList.add(new SparseColumn(columnNames[i], classes[i]));
-        }
-
-        String strLine;
-        Value[] values = new Value[sparseColumnList.size()];
-        List<Constructor<? extends Value>> constructors = new ArrayList<>(classes.length);
-        for (int i = 0; i < classes.length; i++) {
-            constructors.add(classes[i].getConstructor(String.class));
-        }
-
-        while ((strLine = br.readLine()) != null) {
-            String[] str = strLine.split(",");
-            for (int i = 0; i < str.length; i++) {
-                values[i] = constructors.get(i).newInstance(str[i]);
+            String[] columnNames = bufferedReader.readLine().split(",");
+            sparseColumnList = new ArrayList<>();
+            for (int i = 0; i < classes.length; i++) {
+                sparseColumnList.add(new SparseColumn(columnNames[i], classes[i]));
             }
-            addRow(values.clone());
-        }
 
-        br.close();
+            String strLine;
+            Value[] values = new Value[sparseColumnList.size()];
+            List<Constructor<? extends Value>> constructors = new ArrayList<>(classes.length);
+            for (int i = 0; i < classes.length; i++) {
+                constructors.add(classes[i].getConstructor(String.class));
+            }
+
+            while ((strLine = bufferedReader.readLine()) != null) {
+                String[] str = strLine.split(",");
+                for (int i = 0; i < str.length; i++) {
+                    values[i] = constructors.get(i).newInstance(str[i]);
+                }
+                addRow(values.clone());
+            }
+        } catch (IOException | IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -94,9 +88,9 @@ public class SparseDataFrame extends DataFrame {
      * @return true if any element isn't argumentToHide
      */
     @Override
-    public void addRow(Value... values) {
+    public boolean addRow(Value... values) {
         if (values.length != sparseColumnList.size()) {
-            throw new IllegalArgumentException();
+            return false;
         }
 
         boolean toAdd = true;
@@ -117,9 +111,9 @@ public class SparseDataFrame extends DataFrame {
                 i++;
             }
             size++;
-        } else {
-            throw new IllegalArgumentException();
+            return true;
         }
+        return false;
     }
 
     /**
@@ -355,5 +349,4 @@ public class SparseDataFrame extends DataFrame {
         Arrays.setAll(classes, i -> sparseColumnList.get(i).getClazz());
         return classes;
     }
-
 }

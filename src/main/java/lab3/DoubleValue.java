@@ -99,7 +99,7 @@ public class DoubleValue extends Value {
 
     @Override
     public boolean equals(Object other) {
-        if(other instanceof DoubleValue) {
+        if (other instanceof DoubleValue) {
             DoubleValue doubleValue = (DoubleValue) other;
             return doubleValue.value.equals(value);
         }
@@ -108,7 +108,7 @@ public class DoubleValue extends Value {
 
     @Override
     public int hashCode() {
-        return 0;
+        return value.hashCode();
     }
 
     @Override

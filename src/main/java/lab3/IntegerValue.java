@@ -13,7 +13,7 @@ public class IntegerValue extends Value {
     }
 
     public IntegerValue(String string) {
-        if(string.contains(".")) {
+        if (string.contains(".")) {
             value = Integer.valueOf(string.substring(0, string.indexOf(".")));
         }
         value = Integer.valueOf(string);
@@ -107,14 +107,14 @@ public class IntegerValue extends Value {
     public boolean neq(Value value) {
         if (value instanceof IntegerValue) {
             Integer val = (Integer) value.getValue();
-            return val != this.value;
+            return !val.equals(this.value);
         }
         return false;
     }
 
     @Override
     public boolean equals(Object other) {
-        if(other instanceof IntegerValue) {
+        if (other instanceof IntegerValue) {
             IntegerValue integerValue = (IntegerValue) other;
             return integerValue.value.equals(value);
         }

@@ -3,13 +3,16 @@ package lab1.data.frame;
 import lab3.IntegerValue;
 import lab3.Value;
 import lab4.Operation;
+import lab5.InvalidColumnSizeException;
+import lab5.ValueOperationException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class Column implements Cloneable{
+public class Column implements Cloneable {
 
     private String name;
     private Class<? extends Value> clazz;
@@ -39,7 +42,7 @@ public class Column implements Cloneable{
         if (clazz.isInstance(element)) {
             list.add(element);
         } else {
-            throw new IllegalArgumentException();
+            throw new ValueOperationException("Incompatible types: " + element + " class: " + element.getClass() + " and column class: " + clazz);
         }
     }
 
@@ -126,16 +129,17 @@ public class Column implements Cloneable{
 
     /**
      * Return maximum value from Column
+     *
      * @return maixmum value
      */
     public Value getMin() {
-        if(list.isEmpty()) {
+        if (list.isEmpty()) {
             return null;
         }
 
         Value max = list.get(0);
         for (var value : list) {
-            if(value.gte(max)) {
+            if (value.gte(max)) {
                 max = value;
             }
         }
@@ -144,16 +148,17 @@ public class Column implements Cloneable{
 
     /**
      * Return minimum value from Column
+     *
      * @return minimum value
      */
     public Value getMax() {
-        if(list.isEmpty()) {
+        if (list.isEmpty()) {
             return null;
         }
 
         Value min = list.get(0);
         for (var value : list) {
-            if(value.lte(min)) {
+            if (value.lte(min)) {
                 min = value;
             }
         }
@@ -163,10 +168,11 @@ public class Column implements Cloneable{
     /**
      * Return mean from all Values stored in Column
      * for DateTimeValue and StringValue IllegalArgumentException is thrown
+     *
      * @return mean from column values
      */
     public Value getMean() {
-        if(list.isEmpty()) {
+        if (list.isEmpty()) {
             return null;
         }
 
@@ -177,6 +183,7 @@ public class Column implements Cloneable{
     /**
      * Return sum from all Values stored in Column
      * for DateTimeValue and StringValue IllegalArgumentException is thrown
+     *
      * @return mean from column values
      */
     public Value getSum() {
@@ -195,6 +202,7 @@ public class Column implements Cloneable{
     /**
      * Return sum from all Values stored in Column
      * for DateTimeValue and StringValue IllegalArgumentException is thrown
+     *
      * @return mean from column values
      */
     public Value getStd() {
@@ -210,6 +218,7 @@ public class Column implements Cloneable{
     /**
      * Return sum from all Values stored in Column
      * for DateTimeValue and StringValue IllegalArgumentException is thrown
+     *
      * @return mean from column values
      */
     public Value getVar() {
@@ -219,7 +228,7 @@ public class Column implements Cloneable{
             Constructor<? extends Value> constructor = clazz.getConstructor(String.class);
             Value output = constructor.newInstance("0");
             Value powVal = constructor.newInstance("2");
-            for(var value: list) {
+            for (var value : list) {
                 output = output.add(value.sub(mean).pow(powVal));
             }
             return output.div(new IntegerValue(list.size()));
@@ -228,5 +237,125 @@ public class Column implements Cloneable{
         }
 
         throw new IllegalArgumentException("Bad Column type " + clazz);
+    }
+
+    /**
+     * Add value parameter to all Values stored in Column
+     *
+     * @param value value to add
+     */
+    public void addAll(Value value) {
+        for (int i = 0; i < list.size(); i++) {
+            list.set(i, list.get(i).add(value));
+        }
+    }
+
+    /**
+     * Multiply all Values stored in Column with value parameter
+     *
+     * @param value value to multiply by
+     */
+    public void mulAll(Value value) {
+        for (int i = 0; i < list.size(); i++) {
+            list.set(i, list.get(i).mul(value));
+        }
+    }
+
+    /**
+     * Divide all Values stored in Column with value parameter
+     *
+     * @param value value to divide by
+     */
+    public void divAll(Value value) {
+        for (int i = 0; i < list.size(); i++) {
+            list.set(i, list.get(i).div(value));
+        }
+    }
+
+    /**
+     * multiply values in column with values in other column
+     *
+     * @param column column to multiply by
+     * @throws InvalidColumnSizeException if columns size doesn't match
+     */
+    public void mul(Column column) throws InvalidColumnSizeException {
+        if (list.size() != column.list.size()) {
+            throw new InvalidColumnSizeException("Columns size doesn't match : "
+                    + name + " size: " + list.size()
+                    + " and  " + column.name + " size: "
+                    + column.list.size());
+        }
+
+        for (int i = 0; i < list.size(); i++) {
+            list.set(i, column.list.get(i).mul(list.get(i)));
+        }
+    }
+
+    /**
+     * Add values in column with values in other column
+     *
+     * @param column column to add
+     * @throws InvalidColumnSizeException if columns size doesn't match
+     */
+    public void add(Column column) throws InvalidColumnSizeException {
+        if (list.size() != column.list.size()) {
+            throw new InvalidColumnSizeException("Columns size doesn't match : "
+                    + name + " size: " + list.size()
+                    + " and  " + column.name + " size: "
+                    + column.list.size());
+        }
+
+        for (int i = 0; i < list.size(); i++) {
+            list.set(i, column.list.get(i).add(list.get(i)));
+        }
+    }
+
+    /**
+     * Divide values in column with values in other column
+     *
+     * @param column column to divide by
+     * @throws InvalidColumnSizeException if columns size doesn't match
+     */
+    public void div(Column column) throws InvalidColumnSizeException {
+        if (list.size() != column.list.size()) {
+            throw new InvalidColumnSizeException("Columns size doesn't match : "
+                    + name + " size: " + list.size()
+                    + " and  " + column.name + " size: "
+                    + column.list.size());
+        }
+
+        for (int i = 0; i < list.size(); i++) {
+            list.set(i, list.get(i).div(column.list.get(i)));
+        }
+    }
+
+    /**
+     * Generated by Intellij
+     *
+     * @param o object to compare
+     * @return if objects are equals or not
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Column column = (Column) o;
+        return Objects.equals(name, column.name) &&
+                Objects.equals(clazz, column.clazz) &&
+                Objects.equals(list, column.list);
+    }
+
+    /**
+     * Generated by Intellij
+     *
+     * @return hash value
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, clazz, list);
     }
 }
