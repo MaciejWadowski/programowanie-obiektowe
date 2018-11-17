@@ -18,7 +18,13 @@ class ColumnTest {
     @BeforeEach
     void setUp() {
         column = new Column("column", IntegerValue.class);
-        IntStream.rangeClosed(0, 10).forEach(i -> column.addElement(new IntegerValue(i)));
+        IntStream.rangeClosed(0, 10).forEach(i -> {
+            try {
+                column.addElement(new IntegerValue(i));
+            } catch (ValueOperationException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
 
@@ -60,7 +66,7 @@ class ColumnTest {
     }
 
     @Test
-    void shouldCalculateStd() {
+    void shouldCalculateStd() throws ValueOperationException {
         //given
         Column column = new Column("doubleClass", DoubleValue.class);
         for (int i = 0; i <= 10; i++) {

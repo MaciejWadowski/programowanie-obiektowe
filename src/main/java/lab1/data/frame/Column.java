@@ -38,7 +38,7 @@ public class Column implements Cloneable {
      *
      * @param element Object to insert
      */
-    public void addElement(Value element) {
+    public void addElement(Value element) throws ValueOperationException {
         if (clazz.isInstance(element)) {
             list.add(element);
         } else {

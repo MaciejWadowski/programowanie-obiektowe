@@ -3,6 +3,7 @@ package lab2;
 import lab1.data.frame.Column;
 import lab1.data.frame.DataFrame;
 import lab3.Value;
+import lab5.ValueOperationException;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -51,7 +52,7 @@ public class SparseDataFrame extends DataFrame {
      * @param file    csv file to read
      * @param classes type for column to hold
      */
-    public SparseDataFrame(String file, Class<? extends Value>[] classes, Value argumentToHide) {
+    public SparseDataFrame(String file, Class<? extends Value>[] classes, Value argumentToHide) throws NoSuchMethodException, IOException, InstantiationException, ValueOperationException, IllegalAccessException, InvocationTargetException {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
             this.argumentToHide = argumentToHide;
 
@@ -75,8 +76,8 @@ public class SparseDataFrame extends DataFrame {
                 }
                 addRow(values.clone());
             }
-        } catch (IOException | IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-            e.printStackTrace();
+        } catch (IOException | IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException | ValueOperationException e) {
+            throw e;
         }
     }
 
@@ -88,32 +89,25 @@ public class SparseDataFrame extends DataFrame {
      * @return true if any element isn't argumentToHide
      */
     @Override
-    public boolean addRow(Value... values) {
+    public void addRow(Value... values) throws ValueOperationException {
         if (values.length != sparseColumnList.size()) {
-            return false;
+            throw new ValueOperationException("You should pass that many values as there are columns at DataFrame");
         }
 
-        boolean toAdd = true;
 
         for (int i = 0; i < values.length; i++) {
             if (!sparseColumnList.get(i).getClazz().isInstance(values[i])) {
-                toAdd = false;
-                break;
+                throw new ValueOperationException("Bad Value Class");
             }
         }
-
-        if (toAdd) {
-            int i = 0;
-            for (var sparseColumn : sparseColumnList) {
-                if (!values[i].equals(argumentToHide)) {
-                    sparseColumn.addElement(values[i], size);
-                }
-                i++;
+        int i = 0;
+        for (var sparseColumn : sparseColumnList) {
+            if (!values[i].equals(argumentToHide)) {
+                sparseColumn.addElement(values[i], size);
             }
-            size++;
-            return true;
+            i++;
         }
-        return false;
+        size++;
     }
 
     /**
@@ -196,13 +190,16 @@ public class SparseDataFrame extends DataFrame {
         for (var sparseColumn : sparseColumnList) {
             if (sparseColumn.getName().equals(name)) {
                 column = new Column(name, sparseColumn.getClazz());
-
-                for (int i = 0; i < size; i++) {
-                    if ((j < sparseColumn.size()) && (sparseColumn.getCOOElement(j).getIndex() == i)) {
-                        column.addElement(sparseColumn.getCOOElement(j++).getValue());
-                    } else {
-                        column.addElement(argumentToHide);
+                try {
+                    for (int i = 0; i < size; i++) {
+                        if ((j < sparseColumn.size()) && (sparseColumn.getCOOElement(j).getIndex() == i)) {
+                            column.addElement(sparseColumn.getCOOElement(j++).getValue());
+                        } else {
+                            column.addElement(argumentToHide);
+                        }
                     }
+                } catch (ValueOperationException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -278,7 +275,11 @@ public class SparseDataFrame extends DataFrame {
             }
             k++;
         }
-        sparseDataFrame.addRow(values);
+        try {
+            sparseDataFrame.addRow(values);
+        } catch (ValueOperationException e) {
+            e.printStackTrace();
+        }
         return sparseDataFrame;
     }
 
@@ -333,7 +334,11 @@ public class SparseDataFrame extends DataFrame {
                     values[j] = argumentToHide;
                 }
             }
-            dataFrame.addRow(values.clone());
+            try {
+                dataFrame.addRow(values.clone());
+            } catch (ValueOperationException e) {
+                e.printStackTrace();
+            }
         }
         return dataFrame;
     }

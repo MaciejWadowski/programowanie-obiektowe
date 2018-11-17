@@ -1,8 +1,13 @@
 package lab1.data.frame;
 
-import lab3.*;
-import lab4.*;
+import lab3.DateTimeValue;
+import lab3.StringValue;
+import lab3.Value;
+import lab4.Applyable;
+import lab4.GroupBy;
+import lab4.Operation;
 import lab5.InvalidColumnSizeException;
+import lab5.ValueOperationException;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -11,7 +16,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 
 public class DataFrame {
@@ -51,7 +55,7 @@ public class DataFrame {
      * @param file    CSV file
      * @param classes type
      **/
-    public DataFrame(String file, Class<? extends Value>[] classes) {
+    public DataFrame(String file, Class<? extends Value>[] classes) throws Exception {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
             String[] columnNames = bufferedReader.readLine().split(",");
             columns = new ArrayList<>();
@@ -74,8 +78,10 @@ public class DataFrame {
                 }
                 addRow(values.clone());
             }
-        } catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
-            e.printStackTrace();
+        } catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException | ValueOperationException  e) {
+            throw e;
+        } catch (Exception e) {
+            throw e;
         }
     }
 
@@ -99,14 +105,20 @@ public class DataFrame {
      * @param values Objects to add to DataFrame
      * @return true if amount of passed objects match to amount of Columns and Objects to each Column have same type
      */
-    public boolean addRow(Value... values) {
+    public void addRow(Value... values) throws ValueOperationException {
         if (columns.size() != values.length) {
-            return false;
+            throw new ValueOperationException("You should pass that many values as there are columns at DataFrame");
         }
 
-        IntStream.range(0, columns.size())
-                .forEach(i -> columns.get(i).addElement(values[i]));
-        return true;
+        for (int i = 0; i < columns.size() ; i++) {
+            if(!columns.get(i).getClazz().isInstance(values[i])) {
+                throw new ValueOperationException("Value Classes doesn't match");
+            }
+        }
+
+        for (int i = 0; i <  columns.size(); i++) {
+            columns.get(i).addElement(values[i]);
+        }
     }
 
 
@@ -116,9 +128,10 @@ public class DataFrame {
      * @param values
      * @return
      */
-    private void addRow(List<Value> values) {
-        IntStream.range(0, columns.size())
-                .forEach(i -> columns.get(i).addElement(values.get(i)));
+    private void addRow(List<Value> values)throws ValueOperationException {
+        for (int i = 0; i < columns.size(); i++) {
+            columns.get(i).addElement(values.get(i));
+        }
     }
 
     /**
@@ -192,7 +205,7 @@ public class DataFrame {
      * @param i index of Row to copy
      * @return new DataFrame with one row
      */
-    public DataFrame iloc(int i) {
+    public DataFrame iloc(int i) throws ValueOperationException {
         DataFrame output = new DataFrame(getColumnNames(), getClasses());
 
         int k = 0;
@@ -211,7 +224,7 @@ public class DataFrame {
      * @param to   to which index to copy
      * @return new DataFrame with specified rows
      */
-    public DataFrame iloc(int from, int to) {
+    public DataFrame iloc(int from, int to) throws ValueOperationException {
         DataFrame output = new DataFrame();
         from = (from < 0) ? 0 : from;
 
@@ -267,7 +280,7 @@ public class DataFrame {
      * @param colname Column names, by which DataFrame is sorted
      * @return Inner DataFrame
      */
-    public DataFrameGroupBy groupBy(String... colname) {
+    public DataFrameGroupBy groupBy(String... colname) throws ValueOperationException {
         HashMap<List<Value>, DataFrame> map = new HashMap<>(colname.length);
         List<Column> columns = Arrays.stream(colname)
                 .map(this::getColumn)
@@ -422,7 +435,7 @@ public class DataFrame {
          * @return DataFrame with results for each keys
          */
 
-        private DataFrame operation(Operation operation, boolean toDrop) {
+        private DataFrame operation(Operation operation, boolean toDrop) throws ValueOperationException {
             DataFrame dataFrame;
 
             // block of code to remove columns, which can't perform certain calculations
@@ -469,46 +482,78 @@ public class DataFrame {
         }
 
         @Override
-        public DataFrame max() {
-            return operation(Operation.MAX, false);
+        public DataFrame max()  {
+            try {
+                return operation(Operation.MAX, false);
+            } catch (ValueOperationException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
 
         @Override
         public DataFrame min() {
-            return operation(Operation.MIN, false);
+            try {
+                return operation(Operation.MIN, false);
+            } catch (ValueOperationException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
 
         @Override
         public DataFrame mean() {
-            return operation(Operation.MEAN, true);
+            try {
+                return operation(Operation.MEAN, true);
+            } catch (ValueOperationException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
 
         @Override
         public DataFrame std() {
-            return operation(Operation.STD, true);
+            try {
+                return operation(Operation.STD, true);
+            } catch (ValueOperationException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
 
         @Override
         public DataFrame sum() {
-            return operation(Operation.SUM, true);
+            try {
+                return operation(Operation.SUM, true);
+            } catch (ValueOperationException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
 
         @Override
         public DataFrame var() {
-            return operation(Operation.VAR, true);
+            try {
+                return operation(Operation.VAR, true);
+            } catch (ValueOperationException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
 
         @Override
-        public DataFrame apply(Applyable applyable) {
+        public DataFrame apply(Applyable applyable) throws ValueOperationException {
             List<DataFrame> dataFrames = map.keySet().stream()
                     .map(e -> applyable.apply(map.get(e)))
                     .collect(Collectors.toList());
 
             if (!dataFrames.isEmpty()) {
                 DataFrame outputDataFrame = new DataFrame(dataFrames.get(0).getColumnNames(), dataFrames.get(0).getClasses());
-                dataFrames.stream()
-                        .map(dataFrame -> dataFrame.getRow(0)) //because all DataFrames with outputs have only one row
-                        .forEach(outputDataFrame::addRow);
+                //because all DataFrames with outputs have only one row
+                for (DataFrame dataFrame : dataFrames) {
+                    Value[] row = dataFrame.getRow(0);
+                    outputDataFrame.addRow(row);
+                }
 
                 return outputDataFrame;
             }

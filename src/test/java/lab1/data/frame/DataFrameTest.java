@@ -16,7 +16,7 @@ class DataFrameTest {
     private DataFrame dataFrame2;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws ValueOperationException {
         dataFrame = new DataFrame(new String[]{"kol1", "kol2"}, new Class[]{StringValue.class, IntegerValue.class});
         dataFrame1 = new DataFrame(new String[]{"kol1", "kol2"}, new Class[]{IntegerValue.class, IntegerValue.class});
         dataFrame2 = new DataFrame(new String[]{"kol1", "kol2"}, new Class[]{IntegerValue.class, IntegerValue.class});
@@ -32,7 +32,7 @@ class DataFrameTest {
 
     @Test
     void shouldNotAddRow() {
-        assertFalse(dataFrame.addRow());
+        assertThrows(ValueOperationException.class, () -> dataFrame.addRow());
     }
 
     @Test
@@ -41,7 +41,7 @@ class DataFrameTest {
     }
 
     @Test
-    void shouldReturnDataFrameSpecifiedRow() {
+    void shouldReturnDataFrameSpecifiedRow() throws ValueOperationException {
         //when
         DataFrame dataFrame = this.dataFrame.iloc(1);
         //then
@@ -50,7 +50,7 @@ class DataFrameTest {
     }
 
     @Test
-    void shouldReturnDataFrameWithSpecifiedRows() {
+    void shouldReturnDataFrameWithSpecifiedRows() throws ValueOperationException {
         //when
         DataFrame dataFrame = this.dataFrame.iloc(2, 3);
         //then
@@ -72,7 +72,7 @@ class DataFrameTest {
     }
 
     @Test
-    void shouldAddValueToAllData() {
+    void shouldAddValueToAllData() throws ValueOperationException {
         //given
         for (int i = 0; i < 5; i++) {
             dataFrame1.addRow(new IntegerValue(i), new IntegerValue(i - 1));
@@ -87,7 +87,7 @@ class DataFrameTest {
     }
 
     @Test
-    void shouldDivAllValues() {
+    void shouldDivAllValues() throws ValueOperationException {
         //given
         for (int i = 0; i < 5; i++) {
             dataFrame1.addRow(new IntegerValue(i), new IntegerValue(i - 1));
@@ -102,7 +102,7 @@ class DataFrameTest {
     }
 
     @Test
-    void shouldMultiplyByWholeColumn() {
+    void shouldMultiplyByWholeColumn() throws ValueOperationException {
         //given
         Column column = new Column("column", IntegerValue.class);
         for (int i = 0; i < 5; i++) {
@@ -119,7 +119,7 @@ class DataFrameTest {
     }
 
     @Test
-    void shouldDivideByWholeColumn() {
+    void shouldDivideByWholeColumn() throws ValueOperationException {
         //given
         Column column = new Column("column", IntegerValue.class);
         for (int i = 0; i < 5; i++) {
@@ -136,7 +136,7 @@ class DataFrameTest {
     }
 
     @Test
-    void shouldAddWholeColumn() {
+    void shouldAddWholeColumn() throws ValueOperationException {
         //given
         Column column = new Column("column", IntegerValue.class);
         for (int i = 0; i < 5; i++) {
