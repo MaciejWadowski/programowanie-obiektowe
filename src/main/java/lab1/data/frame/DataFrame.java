@@ -15,10 +15,13 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 
 public class DataFrame {
+
+    private static final int MAXIMUM_THREADS_CONCURRENTLY = 5;
 
     private List<Column> columns;
 
@@ -72,9 +75,9 @@ public class DataFrame {
             }
 
             while ((strLine = bufferedReader.readLine()) != null) {
-                String[] str = strLine.split(",");
-                for (int i = 0; i < str.length; i++) {
-                    values[i] = constructors.get(i).newInstance(str[i]);
+                String[] line = strLine.split(",");
+                for (int i = 0; i < line.length; i++) {
+                    values[i] = constructors.get(i).newInstance(line[i]);
                 }
                 addRow(values.clone());
             }
@@ -445,7 +448,8 @@ public class DataFrame {
                 List<Integer> namesToRemove = new ArrayList<>();
 
                 for (int i = 0; i < classList.size(); i++) {
-                    if ((classList.get(i).equals(StringValue.class) || classList.get(i).equals(DateTimeValue.class)) && !colNames.contains(nameList.get(i))) {
+                    if ((classList.get(i).equals(StringValue.class) || classList.get(i).equals(DateTimeValue.class))
+                            && !colNames.contains(nameList.get(i))) {
                         namesToRemove.add(i);
                     }
                 }
@@ -463,20 +467,42 @@ public class DataFrame {
                 dataFrame = new DataFrame(getColumnNames(), getClasses());
             }
 
+            ExecutorService executorService = Executors.newFixedThreadPool(MAXIMUM_THREADS_CONCURRENTLY);
+            List<Callable<List<Value>>> callables = new ArrayList<>();
             for (var keys : map.keySet()) {
-                List<Value> toAdd = new ArrayList<>(keys);
                 DataFrame dataFrameWithIdValues = map.get(keys);
+                callables.add(() -> {
+                            List<Value> toAdd = new ArrayList<>(keys);
+                            for (var column : dataFrameWithIdValues.columns) {
+                                if (!colNames.contains(column.getName())) {
+                                    if (toDrop && !(column.getClazz().equals(DateTimeValue.class)
+                                            || column.getClazz().equals(StringValue.class))) {
+                                        toAdd.add(column.calculate(operation));
+                                    } else if (!toDrop) {
+                                        toAdd.add(column.calculate(operation));
+                                    }
+                                }
+                            }
+                            return toAdd;
+                        });
+            }
 
-                for (var column : dataFrameWithIdValues.columns) {
-                    if (!colNames.contains(column.getName())) {
-                        if (toDrop && !(column.getClazz().equals(DateTimeValue.class) || column.getClazz().equals(StringValue.class))) {
-                            toAdd.add(column.calculate(operation));
-                        } else if (!toDrop) {
-                            toAdd.add(column.calculate(operation));
-                        }
-                    }
+            List<List<Value>> aggregateDataFrameValues = new ArrayList<>();
+            List<Future<List<Value>>> futureValues;
+            try {
+                futureValues = executorService.invokeAll(callables);
+                for(var value: futureValues) {
+                    aggregateDataFrameValues.add(value.get());
                 }
-                dataFrame.addRow(toAdd);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+            executorService.shutdown();
+
+            for (var result: aggregateDataFrameValues) {
+                dataFrame.addRow(result);
             }
             return dataFrame;
         }
@@ -557,7 +583,7 @@ public class DataFrame {
 
                 return outputDataFrame;
             }
-            throw new IllegalArgumentException("List of DataFrames is empty");
+            throw new ValueOperationException("List of DataFrames is empty");
         }
     }
 }
