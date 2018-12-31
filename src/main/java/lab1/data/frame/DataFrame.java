@@ -15,15 +15,14 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 
 public class DataFrame {
 
-    private static final int MAXIMUM_THREADS_CONCURRENTLY = 5;
+    protected static final int MAXIMUM_THREADS_CONCURRENTLY = 5;
 
-    private List<Column> columns;
+    protected List<Column> columns;
 
     /**
      * Constructs DataFrame with empty Columns
@@ -131,7 +130,7 @@ public class DataFrame {
      * @param values
      * @return
      */
-    private void addRow(List<Value> values)throws ValueOperationException {
+    public void addRow(List<Value> values)throws ValueOperationException {
         for (int i = 0; i < columns.size(); i++) {
             columns.get(i).addElement(values.get(i));
         }
@@ -413,8 +412,8 @@ public class DataFrame {
 
     public class DataFrameGroupBy implements GroupBy {
 
-        private HashMap<List<Value>, DataFrame> map;
-        private List<String> colNames;
+        protected HashMap<List<Value>, DataFrame> map;
+        protected List<String> colNames;
 
         /**
          * Constructor for inner DataFrame class
@@ -434,11 +433,11 @@ public class DataFrame {
          * like DateTimeValue should be on output
          *
          * @param operation Enum value, to choose which operation invoke
-         * @param toDrop    boolean value, if true, method won't perform operations on DateTimeValue and StrinValue
+         * @param toDrop    boolean value, if true, method won't perform operations on DateTimeValue and StringValue
          * @return DataFrame with results for each keys
          */
 
-        private DataFrame operation(Operation operation, boolean toDrop) throws ValueOperationException {
+        protected DataFrame operation(Operation operation, boolean toDrop) throws ValueOperationException {
             DataFrame dataFrame;
 
             // block of code to remove columns, which can't perform certain calculations
@@ -448,8 +447,7 @@ public class DataFrame {
                 List<Integer> namesToRemove = new ArrayList<>();
 
                 for (int i = 0; i < classList.size(); i++) {
-                    if ((classList.get(i).equals(StringValue.class) || classList.get(i).equals(DateTimeValue.class))
-                            && !colNames.contains(nameList.get(i))) {
+                    if ((classList.get(i).equals(StringValue.class) || classList.get(i).equals(DateTimeValue.class)) && !colNames.contains(nameList.get(i))) {
                         namesToRemove.add(i);
                     }
                 }
@@ -467,42 +465,20 @@ public class DataFrame {
                 dataFrame = new DataFrame(getColumnNames(), getClasses());
             }
 
-            ExecutorService executorService = Executors.newFixedThreadPool(MAXIMUM_THREADS_CONCURRENTLY);
-            List<Callable<List<Value>>> callables = new ArrayList<>();
             for (var keys : map.keySet()) {
+                List<Value> toAdd = new ArrayList<>(keys);
                 DataFrame dataFrameWithIdValues = map.get(keys);
-                callables.add(() -> {
-                            List<Value> toAdd = new ArrayList<>(keys);
-                            for (var column : dataFrameWithIdValues.columns) {
-                                if (!colNames.contains(column.getName())) {
-                                    if (toDrop && !(column.getClazz().equals(DateTimeValue.class)
-                                            || column.getClazz().equals(StringValue.class))) {
-                                        toAdd.add(column.calculate(operation));
-                                    } else if (!toDrop) {
-                                        toAdd.add(column.calculate(operation));
-                                    }
-                                }
-                            }
-                            return toAdd;
-                        });
-            }
 
-            List<List<Value>> aggregateDataFrameValues = new ArrayList<>();
-            List<Future<List<Value>>> futureValues;
-            try {
-                futureValues = executorService.invokeAll(callables);
-                for(var value: futureValues) {
-                    aggregateDataFrameValues.add(value.get());
+                for (var column : dataFrameWithIdValues.columns) {
+                    if (!colNames.contains(column.getName())) {
+                        if (toDrop && !(column.getClazz().equals(DateTimeValue.class) || column.getClazz().equals(StringValue.class))) {
+                            toAdd.add(column.calculate(operation));
+                        } else if (!toDrop) {
+                            toAdd.add(column.calculate(operation));
+                        }
+                    }
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-            executorService.shutdown();
-
-            for (var result: aggregateDataFrameValues) {
-                dataFrame.addRow(result);
+                dataFrame.addRow(toAdd);
             }
             return dataFrame;
         }
