@@ -20,8 +20,6 @@ import java.util.stream.Collectors;
 
 public class DataFrame {
 
-    protected static final int MAXIMUM_THREADS_CONCURRENTLY = 5;
-
     protected List<Column> columns;
 
     /**
