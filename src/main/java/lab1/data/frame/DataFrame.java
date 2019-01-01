@@ -1,17 +1,15 @@
 package lab1.data.frame;
 
-import lab3.DateTimeValue;
-import lab3.StringValue;
-import lab3.Value;
-import lab4.Applyable;
-import lab4.GroupBy;
-import lab4.Operation;
-import lab5.InvalidColumnSizeException;
-import lab5.ValueOperationException;
+import exceptions.InvalidColumnSizeException;
+import exceptions.ValueOperationException;
+import utils.Applyable;
+import utils.GroupBy;
+import utils.Operation;
+import values.DateTimeValue;
+import values.StringValue;
+import values.Value;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -559,5 +557,32 @@ public class DataFrame {
             }
             throw new ValueOperationException("List of DataFrames is empty");
         }
+    }
+
+    /**
+     * Converts DataFrame to csv file
+     *
+     * @param fileName name of csv file
+     * @return reference to a csv file
+     * @throws IOException
+     */
+    public File convertToCSV (String fileName) throws IOException {
+        try (PrintWriter csvWriter = new PrintWriter(fileName)) {
+            for (int i = 0; i < columns.size(); i++) {
+                csvWriter.append(columns.get(i).getName());
+                csvWriter.append((columns.size() - 1 == i) ? '\n' : ',');
+            }
+
+            for (int i = 0; i < size(); i++) {
+                for (int j = 0; j < columns.size(); j++) {
+                    csvWriter.append(columns.get(j).getElement(i).toString());
+                    csvWriter.append((j == columns.size() - 1) ? '\n' : ',');
+                }
+            }
+        } catch (IOException e) {
+            throw e;
+        }
+
+        return new File(fileName);
     }
 }

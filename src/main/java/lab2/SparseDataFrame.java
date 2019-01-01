@@ -2,8 +2,8 @@ package lab2;
 
 import lab1.data.frame.Column;
 import lab1.data.frame.DataFrame;
-import lab3.Value;
-import lab5.ValueOperationException;
+import values.Value;
+import exceptions.ValueOperationException;
 
 import java.io.*;
 import java.lang.reflect.Constructor;

@@ -2,13 +2,13 @@ package threads;
 
 import lab1.data.frame.Column;
 import lab1.data.frame.DataFrame;
-import lab3.DateTimeValue;
-import lab3.StringValue;
-import lab3.Value;
-import lab4.Applyable;
-import lab4.Operation;
-import lab5.InvalidColumnSizeException;
-import lab5.ValueOperationException;
+import values.DateTimeValue;
+import values.StringValue;
+import values.Value;
+import utils.Applyable;
+import utils.Operation;
+import exceptions.InvalidColumnSizeException;
+import exceptions.ValueOperationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 public class ConcurrentDataFrame extends DataFrame {
 
-    protected static final int MAXIMUM_THREADS_CONCURRENTLY = 5;
+    private int maximumThreadsConcurrently = 5;
 
     public ConcurrentDataFrame(String[] names, Class<? extends Value>[] clazz) {
         super(names, clazz);
@@ -34,6 +34,12 @@ public class ConcurrentDataFrame extends DataFrame {
 
     public ConcurrentDataFrame(List<Column> columns) {
         super(columns);
+    }
+
+    public void setMaximumThreadsConcurrently(int maximumThreadsConcurrently) {
+        if(maximumThreadsConcurrently > 1) {
+            this.maximumThreadsConcurrently = maximumThreadsConcurrently;
+        }
     }
 
     @Override
@@ -101,7 +107,7 @@ public class ConcurrentDataFrame extends DataFrame {
                 dataFrame = new DataFrame(getColumnNames(), getClasses());
             }
 
-            ExecutorService executorService = Executors.newFixedThreadPool(MAXIMUM_THREADS_CONCURRENTLY);
+            ExecutorService executorService = Executors.newFixedThreadPool(maximumThreadsConcurrently);
             List<Callable<List<Value>>> callables = new ArrayList<>();
             for (var keys : map.keySet()) {
                 DataFrame dataFrameWithIdValues = map.get(keys);

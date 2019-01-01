@@ -1,4 +1,4 @@
-package lab5;
+package exceptions;
 
 public class InvalidColumnSizeException extends Exception {
 

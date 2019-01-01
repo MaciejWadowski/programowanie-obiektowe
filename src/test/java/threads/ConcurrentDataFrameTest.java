@@ -1,10 +1,10 @@
 package threads;
 
 import lab1.data.frame.Column;
-import lab3.DateTimeValue;
-import lab3.IntegerValue;
-import lab3.StringValue;
-import lab5.ValueOperationException;
+import values.DateTimeValue;
+import values.IntegerValue;
+import values.StringValue;
+import exceptions.ValueOperationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

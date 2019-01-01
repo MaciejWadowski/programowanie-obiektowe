@@ -1,4 +1,4 @@
-package lab3;
+package values;
 
 public class FloatValue extends Value {
 

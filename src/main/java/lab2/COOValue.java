@@ -1,6 +1,6 @@
 package lab2;
 
-import lab3.Value;
+import values.Value;
 
 public class COOValue extends Value {
 

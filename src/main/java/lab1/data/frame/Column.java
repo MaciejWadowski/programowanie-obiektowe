@@ -1,10 +1,10 @@
 package lab1.data.frame;
 
-import lab3.IntegerValue;
-import lab3.Value;
-import lab4.Operation;
-import lab5.InvalidColumnSizeException;
-import lab5.ValueOperationException;
+import values.IntegerValue;
+import values.Value;
+import utils.Operation;
+import exceptions.InvalidColumnSizeException;
+import exceptions.ValueOperationException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

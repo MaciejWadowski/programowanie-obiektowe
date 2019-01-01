@@ -1,7 +1,7 @@
-package lab4;
+package utils;
 
 import lab1.data.frame.DataFrame;
-import lab5.ValueOperationException;
+import exceptions.ValueOperationException;
 
 public interface GroupBy {
     DataFrame max() throws ValueOperationException;

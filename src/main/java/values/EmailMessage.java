@@ -1,4 +1,4 @@
-package lab3;
+package values;
 
 import java.util.Arrays;
 import java.util.LinkedList;

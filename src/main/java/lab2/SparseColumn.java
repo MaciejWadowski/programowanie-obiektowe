@@ -1,7 +1,7 @@
 package lab2;
 
 import lab1.data.frame.Column;
-import lab3.Value;
+import values.Value;
 
 import java.util.ArrayList;
 import java.util.List;

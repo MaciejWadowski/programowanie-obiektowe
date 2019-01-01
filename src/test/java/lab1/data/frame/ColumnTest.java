@@ -1,10 +1,10 @@
 package lab1.data.frame;
 
-import lab3.DoubleValue;
-import lab3.IntegerValue;
-import lab3.Value;
-import lab5.InvalidColumnSizeException;
-import lab5.ValueOperationException;
+import values.DoubleValue;
+import values.IntegerValue;
+import values.Value;
+import exceptions.InvalidColumnSizeException;
+import exceptions.ValueOperationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

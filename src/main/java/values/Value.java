@@ -1,4 +1,4 @@
-package lab3;
+package values;
 
 public abstract class Value implements Cloneable {
 

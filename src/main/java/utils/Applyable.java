@@ -1,4 +1,4 @@
-package lab4;
+package utils;
 
 import lab1.data.frame.DataFrame;
 

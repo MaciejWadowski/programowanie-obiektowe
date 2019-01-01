@@ -12,6 +12,9 @@
         <annotiations.version>16.0.2</annotiations.version>
         <jmh.version>1.21</jmh.version>
         <java.version>11</java.version>
+        <mysql.version>8.0.13</mysql.version>
+        <junit.version>RELEASE</junit.version>
+        <maven.compiler.version>3.8.0</maven.compiler.version>
     </properties>
 
 
@@ -19,9 +22,10 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>RELEASE</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
@@ -34,22 +38,33 @@
             <artifactId>jmh-core</artifactId>
             <version>${jmh.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-generator-annprocess</artifactId>
             <version>${jmh.version}</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.version}</version>
+        </dependency>
     </dependencies>
+
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
+                <version>${maven.compiler.version}</version>
                 <configuration>
                     <release>${java.version}</release>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
