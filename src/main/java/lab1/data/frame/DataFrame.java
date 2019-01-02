@@ -573,10 +573,16 @@ public class DataFrame {
                 csvWriter.append((columns.size() - 1 == i) ? '\n' : ',');
             }
 
-            for (int i = 0; i < size(); i++) {
+            int size = size();
+
+            for (int i = 0; i < size; i++) {
                 for (int j = 0; j < columns.size(); j++) {
                     csvWriter.append(columns.get(j).getElement(i).toString());
-                    csvWriter.append((j == columns.size() - 1) ? '\n' : ',');
+                    if(i != size - 1) {
+                        csvWriter.append((j == columns.size() - 1) ? '\n' : ',');
+                    } else if(j != columns.size() - 1) {
+                        csvWriter.append(',');
+                    }
                 }
             }
         } catch (IOException e) {

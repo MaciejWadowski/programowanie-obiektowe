@@ -231,13 +231,7 @@ public class ConcurrentDataFrame extends DataFrame {
 
     @Override
     public void add(Value value) {
-        columns.parallelStream().forEach(col -> {
-            try {
-                col.addElement(value);
-            } catch (ValueOperationException e) {
-                e.printStackTrace();
-            }
-        });
+        columns.parallelStream().forEach(col ->col.addAll(value));
     }
 
     @Override

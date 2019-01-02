@@ -23,6 +23,8 @@ public class DataFrameDB extends DataFrame {
     private String userPassword;
     private String url;
 
+    private static boolean EXIST = false;
+
     public DataFrameDB(String dataBaseName, String[] names, Class<? extends Value>[] clazz, String url, String userName, String password) {
         super(names, clazz);
         this.dataBaseName = dataBaseName;
@@ -37,9 +39,6 @@ public class DataFrameDB extends DataFrame {
             for (int i = 0; i < 3; i++) {
                 try {
                     Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
-                    //"jdbc:mysql://mysql.agh.edu.pl/mwadowsk"
-                    // mwadowsk
-                    // oJG5kEujkudNMySv
                     connection = DriverManager.getConnection(url, userName, userPassword);
                     break;
                 } catch (SQLException ex) {
@@ -265,14 +264,15 @@ public class DataFrameDB extends DataFrame {
                 for (int i = 0; i < allNames.size(); i++) {
                     boolean queried = false;
 
-                    if (!columnNames.contains(allNames.get(i))
-                            && classes[i] != DateTimeValue.class
-                            && classes [i] != StringValue.class) {
+                    if (!toDrop && !columnNames.contains(allNames.get(i))) {
                         stringBuilder.append(expression).append(allNames.get(i)).append(")");
                         queried = true;
-                    } else if((!toDrop && (classes[i] == DateTimeValue.class || classes[i] == StringValue.class)) ||
-                            columnNames.contains(allNames.get(i))) {
+                    } else if (columnNames.contains(allNames.get(i))) {
                         stringBuilder.append(allNames.get(i));
+                        queried = true;
+                    } else if (toDrop && !columnNames.contains(allNames.get(i)) && !(classes[i] == StringValue.class ||
+                            classes[i] == DateTimeValue.class)) {
+                        stringBuilder.append(expression).append(allNames.get(i)).append(")");
                         queried = true;
                     }
 
@@ -295,15 +295,15 @@ public class DataFrameDB extends DataFrame {
                 System.out.println(stringBuilder.toString());
                 resultSet = statement.executeQuery(stringBuilder.toString());
 
-                Value[] values = new Value[getClasses().length];
+                Value[] values = new Value[dataFrame.getClasses().length];
                 List<Constructor<? extends Value>> constructors = new ArrayList<>();
-                for (var clazz : getClasses()) {
+                for (var clazz : dataFrame.getClasses()) {
                     Constructor<? extends Value> constructor = clazz.getConstructor(String.class);
                     constructors.add(constructor);
                 }
 
                 while (resultSet.next()) {
-                    for (int i = 1; i <= getClasses().length; i++) {
+                    for (int i = 1; i <= dataFrame.getClasses().length; i++) {
                         values[i - 1] = constructors.get(i - 1).newInstance(resultSet.getString(i));
                     }
                     dataFrame.addRow(values.clone());
