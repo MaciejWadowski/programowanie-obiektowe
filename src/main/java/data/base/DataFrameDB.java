@@ -276,12 +276,12 @@ public class DataFrameDB extends DataFrame {
                         queried = true;
                     }
 
-                    if(queried) {
+                    if (queried) {
                         stringBuilder.append((i == allNames.size() - 1) ? " " : ", ");
                     }
                 }
 
-                if(stringBuilder.charAt(stringBuilder.length() - 1) == ',') {
+                if (stringBuilder.charAt(stringBuilder.length() - 1) == ',') {
                     stringBuilder.setCharAt(stringBuilder.length() - 1, ' ');
                 }
 

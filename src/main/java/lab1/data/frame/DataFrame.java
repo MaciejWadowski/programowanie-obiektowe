@@ -76,7 +76,7 @@ public class DataFrame {
                 }
                 addRow(values.clone());
             }
-        } catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException | ValueOperationException  e) {
+        } catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException | ValueOperationException e) {
             throw e;
         } catch (Exception e) {
             throw e;
@@ -108,13 +108,13 @@ public class DataFrame {
             throw new ValueOperationException("You should pass that many values as there are columns at DataFrame");
         }
 
-        for (int i = 0; i < columns.size() ; i++) {
-            if(!columns.get(i).getClazz().isInstance(values[i])) {
+        for (int i = 0; i < columns.size(); i++) {
+            if (!columns.get(i).getClazz().isInstance(values[i])) {
                 throw new ValueOperationException("Value Classes doesn't match");
             }
         }
 
-        for (int i = 0; i <  columns.size(); i++) {
+        for (int i = 0; i < columns.size(); i++) {
             columns.get(i).addElement(values[i]);
         }
     }
@@ -126,7 +126,7 @@ public class DataFrame {
      * @param values
      * @return
      */
-    public void addRow(List<Value> values)throws ValueOperationException {
+    public void addRow(List<Value> values) throws ValueOperationException {
         for (int i = 0; i < columns.size(); i++) {
             columns.get(i).addElement(values.get(i));
         }
@@ -480,7 +480,7 @@ public class DataFrame {
         }
 
         @Override
-        public DataFrame max()  {
+        public DataFrame max() {
             try {
                 return operation(Operation.MAX, false);
             } catch (ValueOperationException e) {
@@ -566,7 +566,7 @@ public class DataFrame {
      * @return reference to a csv file
      * @throws IOException
      */
-    public File convertToCSV (String fileName) throws IOException {
+    public File convertToCSV(String fileName) throws IOException {
         try (PrintWriter csvWriter = new PrintWriter(fileName)) {
             for (int i = 0; i < columns.size(); i++) {
                 csvWriter.append(columns.get(i).getName());
@@ -578,9 +578,9 @@ public class DataFrame {
             for (int i = 0; i < size; i++) {
                 for (int j = 0; j < columns.size(); j++) {
                     csvWriter.append(columns.get(j).getElement(i).toString());
-                    if(i != size - 1) {
+                    if (i != size - 1) {
                         csvWriter.append((j == columns.size() - 1) ? '\n' : ',');
-                    } else if(j != columns.size() - 1) {
+                    } else if (j != columns.size() - 1) {
                         csvWriter.append(',');
                     }
                 }

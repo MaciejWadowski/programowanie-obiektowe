@@ -37,7 +37,7 @@ public class ConcurrentDataFrame extends DataFrame {
     }
 
     public void setMaximumThreadsConcurrently(int maximumThreadsConcurrently) {
-        if(maximumThreadsConcurrently > 1) {
+        if (maximumThreadsConcurrently > 1) {
             this.maximumThreadsConcurrently = maximumThreadsConcurrently;
         }
     }
@@ -133,7 +133,7 @@ public class ConcurrentDataFrame extends DataFrame {
             List<Future<List<Value>>> futureValues;
             try {
                 futureValues = executorService.invokeAll(callables);
-                for(var value: futureValues) {
+                for (var value : futureValues) {
                     aggregateDataFrameValues.add(value.get());
                 }
             } catch (InterruptedException e) {
@@ -143,7 +143,7 @@ public class ConcurrentDataFrame extends DataFrame {
             }
             executorService.shutdown();
 
-            for (var result: aggregateDataFrameValues) {
+            for (var result : aggregateDataFrameValues) {
                 dataFrame.addRow(result);
             }
             return dataFrame;
@@ -172,7 +172,7 @@ public class ConcurrentDataFrame extends DataFrame {
         @Override
         public DataFrame mean() {
             try {
-                return operation(Operation.MEAN, false);
+                return operation(Operation.MEAN, true);
             } catch (ValueOperationException e) {
                 e.printStackTrace();
             }
@@ -182,7 +182,7 @@ public class ConcurrentDataFrame extends DataFrame {
         @Override
         public DataFrame std() {
             try {
-                return operation(Operation.STD, false);
+                return operation(Operation.STD, true);
             } catch (ValueOperationException e) {
                 e.printStackTrace();
             }
@@ -192,7 +192,7 @@ public class ConcurrentDataFrame extends DataFrame {
         @Override
         public DataFrame sum() {
             try {
-                return operation(Operation.SUM, false);
+                return operation(Operation.SUM, true);
             } catch (ValueOperationException e) {
                 e.printStackTrace();
             }
@@ -202,7 +202,7 @@ public class ConcurrentDataFrame extends DataFrame {
         @Override
         public DataFrame var() {
             try {
-                return operation(Operation.VAR, false);
+                return operation(Operation.VAR, true);
             } catch (ValueOperationException e) {
                 e.printStackTrace();
             }
@@ -231,7 +231,7 @@ public class ConcurrentDataFrame extends DataFrame {
 
     @Override
     public void add(Value value) {
-        columns.parallelStream().forEach(col ->col.addAll(value));
+        columns.parallelStream().forEach(col -> col.addAll(value));
     }
 
     @Override
@@ -274,5 +274,6 @@ public class ConcurrentDataFrame extends DataFrame {
             } catch (InvalidColumnSizeException e) {
                 e.printStackTrace();
             }
-        });    }
+        });
+    }
 }
