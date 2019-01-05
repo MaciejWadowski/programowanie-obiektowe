@@ -11,7 +11,6 @@ import values.Value;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,8 +75,6 @@ public class DataFrame {
                 }
                 addRow(values.clone());
             }
-        } catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException | ValueOperationException e) {
-            throw e;
         } catch (Exception e) {
             throw e;
         }
@@ -424,16 +421,12 @@ public class DataFrame {
         }
 
         /**
-         * Method used to calculate all implemented operations,
-         * with toDrop boolean variable, to decide if Value classes
-         * like DateTimeValue should be on output
+         * Returns DataFrame with output columns
          *
-         * @param operation Enum value, to choose which operation invoke
-         * @param toDrop    boolean value, if true, method won't perform operations on DateTimeValue and StringValue
-         * @return DataFrame with results for each keys
+         * @param toDrop to remove StringValue and DateTimeValue columns or not
+         * @return empty DataFrame
          */
-
-        protected DataFrame operation(Operation operation, boolean toDrop) throws ValueOperationException {
+        protected DataFrame getDataFrameGroupByTemplate(boolean toDrop) {
             DataFrame dataFrame;
 
             // block of code to remove columns, which can't perform certain calculations
@@ -443,7 +436,8 @@ public class DataFrame {
                 List<Integer> namesToRemove = new ArrayList<>();
 
                 for (int i = 0; i < classList.size(); i++) {
-                    if ((classList.get(i).equals(StringValue.class) || classList.get(i).equals(DateTimeValue.class)) && !colNames.contains(nameList.get(i))) {
+                    if ((classList.get(i).equals(StringValue.class) || classList.get(i).equals(DateTimeValue.class))
+                            && !colNames.contains(nameList.get(i))) {
                         namesToRemove.add(i);
                     }
                 }
@@ -460,12 +454,29 @@ public class DataFrame {
             } else {
                 dataFrame = new DataFrame(getColumnNames(), getClasses());
             }
+            return dataFrame;
+        }
+
+        /**
+         * Method used to calculate all implemented operations,
+         * with toDrop boolean variable, to decide if Value classes
+         * like DateTimeValue should be on output
+         *
+         * @param operation Enum value, to choose which operation invoke
+         * @param toDrop    boolean value, if true, method won't perform operations on DateTimeValue and StringValue
+         * @return DataFrame with results for each keys
+         */
+
+        protected DataFrame operation(Operation operation, boolean toDrop) throws ValueOperationException {
+            DataFrame dataFrame = getDataFrameGroupByTemplate(toDrop);
+
             for (var keys : map.keySet()) {
                 List<Value> toAdd = new ArrayList<>();
                 DataFrame dataFrameWithIdValues = map.get(keys);
                 for (var column : dataFrameWithIdValues.columns) {
                     if (!colNames.contains(column.getName())) {
-                        if (toDrop && !(column.getClazz().equals(DateTimeValue.class) || column.getClazz().equals(StringValue.class))) {
+                        if (toDrop && !(column.getClazz().equals(DateTimeValue.class)
+                                || column.getClazz().equals(StringValue.class))) {
                             toAdd.add(column.calculate(operation));
                         } else if (!toDrop) {
                             toAdd.add(column.calculate(operation));

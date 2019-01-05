@@ -79,33 +79,7 @@ public class ConcurrentDataFrame extends DataFrame {
 
         @Override
         protected DataFrame operation(Operation operation, boolean toDrop) throws ValueOperationException {
-            DataFrame dataFrame;
-
-            // block of code to remove columns, which can't perform certain calculations
-            if (toDrop) {
-                List<Class<? extends Value>> classList = new ArrayList<>(List.of(getClasses()));
-                ArrayList<String> nameList = new ArrayList<>(List.of(getColumnNames()));
-                List<Integer> namesToRemove = new ArrayList<>();
-
-                for (int i = 0; i < classList.size(); i++) {
-                    if ((classList.get(i).equals(StringValue.class) || classList.get(i).equals(DateTimeValue.class))
-                            && !colNames.contains(nameList.get(i))) {
-                        namesToRemove.add(i);
-                    }
-                }
-
-                for (int i = namesToRemove.size() - 1; i >= 0; i--) {
-                    nameList.remove((int) namesToRemove.get(i));
-                    classList.remove((int) namesToRemove.get(i));
-                }
-
-                String[] names = nameList.toArray(String[]::new);
-                Class[] classes = classList.toArray(Class[]::new);
-
-                dataFrame = new DataFrame(names, classes);
-            } else {
-                dataFrame = new DataFrame(getColumnNames(), getClasses());
-            }
+            DataFrame dataFrame = getDataFrameGroupByTemplate(toDrop);
 
             ExecutorService executorService = Executors.newFixedThreadPool(maximumThreadsConcurrently);
             List<Callable<List<Value>>> callables = new ArrayList<>();
@@ -138,9 +112,7 @@ public class ConcurrentDataFrame extends DataFrame {
                 for (var value : futureValues) {
                     aggregateDataFrameValues.add(value.get());
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
             executorService.shutdown();

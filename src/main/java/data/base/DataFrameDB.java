@@ -29,9 +29,9 @@ public class DataFrameDB extends DataFrame {
      * DataFrameDB constructor with parameters
      *
      * @param tableName - name of your table
-     * @param url - url to your database
-     * @param userName - user login to database
-     * @param password - user password to database
+     * @param url       - url to your database
+     * @param userName  - user login to database
+     * @param password  - user password to database
      */
 
     public DataFrameDB(String tableName, String[] names, Class<? extends Value>[] clazz, String url, String userName, String password) {
@@ -113,11 +113,11 @@ public class DataFrameDB extends DataFrame {
      * Constructor for DataFrameDB
      *
      * @param tableName name for table in mysql database
-     * @param file csv file to read data from
-     * @param classes classes in correct order for values in file
-     * @param url database url
-     * @param userName database user name
-     * @param password database user password
+     * @param file      csv file to read data from
+     * @param classes   classes in correct order for values in file
+     * @param url       database url
+     * @param userName  database user name
+     * @param password  database user password
      * @throws Exception throws when file, user name, url, user password, classes are invalid
      */
     public DataFrameDB(String tableName, String file, Class<? extends Value>[] classes, String url, String userName, String password) throws Exception {
@@ -290,7 +290,7 @@ public class DataFrameDB extends DataFrame {
         /**
          * constructor for DataFrameGroupBy
          *
-         * @param map mapped values, used only to match outer class constructor
+         * @param map      mapped values, used only to match outer class constructor
          * @param colNames column names which dataframe is grouped by
          */
         public DataFrameGroupBy(HashMap<List<Value>, DataFrame> map, String[] colNames) {
@@ -303,35 +303,11 @@ public class DataFrameDB extends DataFrame {
          * Used to create and execute sql statement, then convert result into DataFrame
          *
          * @param expression expression returned from one of min, max etc methods
-         * @param toDrop to drop tables with columns classes, where operations on values are impossible
+         * @param toDrop     to drop tables with columns classes, where operations on values are impossible
          * @return result as DataFrame
          */
         private DataFrame operation(String expression, boolean toDrop) {
-            DataFrame dataFrame;
-
-            if (toDrop) {
-                List<Class<? extends Value>> classList = new ArrayList<>(List.of(getClasses()));
-                ArrayList<String> nameList = new ArrayList<>(List.of(getColumnNames()));
-                List<Integer> namesToRemove = new ArrayList<>();
-
-                for (int i = 0; i < classList.size(); i++) {
-                    if ((classList.get(i).equals(StringValue.class) || classList.get(i).equals(DateTimeValue.class)) && !colNames.contains(nameList.get(i))) {
-                        namesToRemove.add(i);
-                    }
-                }
-
-                for (int i = namesToRemove.size() - 1; i >= 0; i--) {
-                    nameList.remove((int) namesToRemove.get(i));
-                    classList.remove((int) namesToRemove.get(i));
-                }
-
-                String[] names = nameList.toArray(String[]::new);
-                Class[] classes = classList.toArray(Class[]::new);
-
-                dataFrame = new DataFrame(names, classes);
-            } else {
-                dataFrame = new DataFrame(getColumnNames(), getClasses());
-            }
+            DataFrame dataFrame = getDataFrameGroupByTemplate(toDrop);
 
             try {
                 connect();
