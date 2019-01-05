@@ -460,11 +460,9 @@ public class DataFrame {
             } else {
                 dataFrame = new DataFrame(getColumnNames(), getClasses());
             }
-
             for (var keys : map.keySet()) {
-                List<Value> toAdd = new ArrayList<>(keys);
+                List<Value> toAdd = new ArrayList<>();
                 DataFrame dataFrameWithIdValues = map.get(keys);
-
                 for (var column : dataFrameWithIdValues.columns) {
                     if (!colNames.contains(column.getName())) {
                         if (toDrop && !(column.getClazz().equals(DateTimeValue.class) || column.getClazz().equals(StringValue.class))) {
@@ -472,6 +470,8 @@ public class DataFrame {
                         } else if (!toDrop) {
                             toAdd.add(column.calculate(operation));
                         }
+                    } else {
+                        toAdd.add(column.getElement(0));
                     }
                 }
                 dataFrame.addRow(toAdd);

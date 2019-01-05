@@ -112,7 +112,7 @@ public class ConcurrentDataFrame extends DataFrame {
             for (var keys : map.keySet()) {
                 DataFrame dataFrameWithIdValues = map.get(keys);
                 callables.add(() -> {
-                    List<Value> toAdd = new ArrayList<>(keys);
+                    List<Value> toAdd = new ArrayList<>();
                     String[] columnNames = dataFrameWithIdValues.getColumnNames();
                     for (var columnName : columnNames) {
                         Column column = dataFrameWithIdValues.getColumn(columnName);
@@ -123,6 +123,8 @@ public class ConcurrentDataFrame extends DataFrame {
                             } else if (!toDrop) {
                                 toAdd.add(column.calculate(operation));
                             }
+                        } else {
+                            toAdd.add(column.getElement(0));
                         }
                     }
                     return toAdd;
