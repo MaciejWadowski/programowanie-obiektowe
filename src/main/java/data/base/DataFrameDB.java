@@ -18,22 +18,34 @@ public class DataFrameDB extends DataFrame {
     private Connection connection = null;
     private Statement statement = null;
     private ResultSet resultSet = null;
-    private String dataBaseName;
+    private String tableName;
     private String userName;
     private String userPassword;
     private String url;
 
     private static boolean EXIST = false;
 
-    public DataFrameDB(String dataBaseName, String[] names, Class<? extends Value>[] clazz, String url, String userName, String password) {
+    /**
+     * DataFrameDB constructor with parameters
+     *
+     * @param tableName - name of your table
+     * @param url - url to your database
+     * @param userName - user login to database
+     * @param password - user password to database
+     */
+
+    public DataFrameDB(String tableName, String[] names, Class<? extends Value>[] clazz, String url, String userName, String password) {
         super(names, clazz);
-        this.dataBaseName = dataBaseName;
+        this.tableName = tableName;
         this.url = url;
         this.userName = userName;
         this.userPassword = password;
 
     }
 
+    /**
+     * Method which connect DataFrameDB with database
+     */
     public void connect() {
         if (connection == null) {
             for (int i = 0; i < 3; i++) {
@@ -52,10 +64,15 @@ public class DataFrameDB extends DataFrame {
         }
     }
 
+    /**
+     * Create a table in database, to hold DataFrameDB values
+     *
+     * @throws SQLException thows when error occurs, for example table name which exist already
+     */
     public void createTable() throws SQLException {
         connect();
         statement = connection.createStatement();
-        StringBuilder stringBuilder = new StringBuilder("CREATE TABLE " + dataBaseName + " (");
+        StringBuilder stringBuilder = new StringBuilder("CREATE TABLE " + tableName + " (");
         String[] columnNames = getColumnNames();
         Class[] columnClasses = getClasses();
         for (int i = 0; i < columnNames.length; i++) {
@@ -65,9 +82,17 @@ public class DataFrameDB extends DataFrame {
             stringBuilder.append(" NOT NULL");
             stringBuilder.append((i == columnNames.length - 1) ? ")" : ", ");
         }
+        System.out.println(stringBuilder.toString());
         statement.executeUpdate(stringBuilder.toString());
         freeResources();
     }
+
+    /**
+     * return string for mysql statement, need when creating a table
+     *
+     * @param clazz Value subclass
+     * @return mysql Value subclass representation
+     */
 
     private String sqlType(Class<? extends Value> clazz) {
         if (clazz == IntegerValue.class) {
@@ -84,9 +109,20 @@ public class DataFrameDB extends DataFrame {
         return null;
     }
 
-    public DataFrameDB(String dataBaseName, String file, Class<? extends Value>[] classes, String url, String userName, String password) throws Exception {
+    /**
+     * Constructor for DataFrameDB
+     *
+     * @param tableName name for table in mysql database
+     * @param file csv file to read data from
+     * @param classes classes in correct order for values in file
+     * @param url database url
+     * @param userName database user name
+     * @param password database user password
+     * @throws Exception throws when file, user name, url, user password, classes are invalid
+     */
+    public DataFrameDB(String tableName, String file, Class<? extends Value>[] classes, String url, String userName, String password) throws Exception {
         super(new BufferedReader(new FileReader(file)).readLine().split(","), classes);
-        this.dataBaseName = dataBaseName;
+        this.tableName = tableName;
         this.url = url;
         this.userName = userName;
         this.userPassword = password;
@@ -94,16 +130,24 @@ public class DataFrameDB extends DataFrame {
         createTable();
         statement = connection.createStatement();
         String update = " LOAD DATA LOCAL INFILE '" + file +
-                "' INTO TABLE " + dataBaseName +
+                "' INTO TABLE " + tableName +
                 " FIELDS TERMINATED BY \',\' " +
                 " LINES TERMINATED BY \'\\n\'";
         statement.executeUpdate(update);
         statement = connection.createStatement();
-        statement.executeUpdate("DELETE FROM " + dataBaseName + " WHERE id=\"id\"");
+        statement.executeUpdate("DELETE FROM " + tableName + " WHERE id=\"id\"");
         freeResources();
     }
 
-    public static DataFrame select(DataFrameDB dataFrameDB, String expression) {
+    /**
+     * Static method which return result from  mysql statement
+     *
+     * @param dataFrameDB dataFrameDB where statement will be executed
+     * @param expression  statement to execute
+     * @return DataFrame with expression results
+     * @throws Exception when statement is invalid
+     */
+    public static DataFrame select(DataFrameDB dataFrameDB, String expression) throws Exception {
         DataFrame dataFrame = null;
         dataFrameDB.connect();
         try {
@@ -132,18 +176,8 @@ public class DataFrameDB extends DataFrame {
                 }
                 dataFrame.addRow(values.clone());
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (ValueOperationException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
+        } catch (SQLException | InvocationTargetException | IllegalAccessException | NoSuchMethodException | ValueOperationException | InstantiationException e) {
+            throw e;
         } finally {
             dataFrameDB.freeResources();
         }
@@ -151,6 +185,12 @@ public class DataFrameDB extends DataFrame {
         return dataFrame;
     }
 
+    /**
+     * Add rows to DataFrameDB mysql database
+     *
+     * @param values string representation of Values to insert into database
+     * @throws SQLException
+     */
     public void addRow(String[] values) throws SQLException {
         connect();
         statement = connection.createStatement();
@@ -166,8 +206,14 @@ public class DataFrameDB extends DataFrame {
             }
             stringBuilder.append((i == values.length - 1) ? ")" : ", ");
         }
-        statement.executeUpdate("INSERT INTO " + dataBaseName + " VALUES (" + stringBuilder.toString());
+        statement.executeUpdate("INSERT INTO " + tableName + " VALUES (" + stringBuilder.toString());
     }
+
+    /**
+     * Add rows to DataFrameDB mysql database
+     *
+     * @param values values to insert into database
+     */
 
     @Override
     public void addRow(Value... values) {
@@ -178,13 +224,18 @@ public class DataFrameDB extends DataFrame {
         }
     }
 
+    /**
+     * return number of records in database
+     *
+     * @return size of DataFrameDB
+     */
     @Override
     public int size() {
         int size = 0;
         try {
             connect();
             statement = connection.createStatement();
-            resultSet = statement.executeQuery("SELECT count(*) as size FROM " + dataBaseName);
+            resultSet = statement.executeQuery("SELECT count(*) as size FROM " + tableName);
             size = resultSet.getInt("size");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -192,13 +243,19 @@ public class DataFrameDB extends DataFrame {
         return size;
     }
 
+
+    /**
+     * Conver DataFrameDB to string
+     *
+     * @return string representation of DataFrameDB
+     */
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         try {
             connect();
             statement = connection.createStatement();
-            resultSet = statement.executeQuery("SELECT * FROM " + dataBaseName);
+            resultSet = statement.executeQuery("SELECT * FROM " + tableName);
             while (resultSet.next()) {
                 for (int i = 1; i <= getClasses().length; i++) {
                     stringBuilder.append(resultSet.getString(i)).append(" | ");
@@ -213,22 +270,42 @@ public class DataFrameDB extends DataFrame {
         return stringBuilder.toString();
     }
 
+    /**
+     * Groups DataFrameDB by specified column names
+     *
+     * @param columnNames column names which groups dataframe
+     * @return inner class, to calculate  operations on grouped DataFrame
+     */
     @Override
-    public DataFrameGroupBy groupBy(String[] columnNames) {
+    public DataFrameGroupBy groupBy(String... columnNames) {
         return new DataFrameGroupBy(null, columnNames);
     }
+
 
     public class DataFrameGroupBy extends DataFrame.DataFrameGroupBy {
 
         private ArrayList<String> columnNames;
         private ArrayList<String> allNames;
 
+        /**
+         * constructor for DataFrameGroupBy
+         *
+         * @param map mapped values, used only to match outer class constructor
+         * @param colNames column names which dataframe is grouped by
+         */
         public DataFrameGroupBy(HashMap<List<Value>, DataFrame> map, String[] colNames) {
             super(map, colNames);
             columnNames = new ArrayList<>(List.of(colNames));
             allNames = new ArrayList<>(List.of(getColumnNames()));
         }
 
+        /**
+         * Used to create and execute sql statement, then convert result into DataFrame
+         *
+         * @param expression expression returned from one of min, max etc methods
+         * @param toDrop to drop tables with columns classes, where operations on values are impossible
+         * @return result as DataFrame
+         */
         private DataFrame operation(String expression, boolean toDrop) {
             DataFrame dataFrame;
 
@@ -285,7 +362,7 @@ public class DataFrameDB extends DataFrame {
                     stringBuilder.setCharAt(stringBuilder.length() - 1, ' ');
                 }
 
-                stringBuilder.append("FROM ").append(dataBaseName).append(" GROUP BY ");
+                stringBuilder.append("FROM ").append(tableName).append(" GROUP BY ");
 
                 for (int i = 0; i < columnNames.size(); i++) {
                     stringBuilder.append(columnNames.get(i));
