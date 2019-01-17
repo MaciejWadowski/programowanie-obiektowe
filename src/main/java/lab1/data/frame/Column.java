@@ -6,13 +6,14 @@ import utils.Operation;
 import exceptions.InvalidColumnSizeException;
 import exceptions.ValueOperationException;
 
+import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Column implements Cloneable {
+public class Column implements Cloneable, Serializable {
 
     private String name;
     private Class<? extends Value> clazz;
@@ -208,7 +209,13 @@ public class Column implements Cloneable {
     public Value getStd() {
         try {
             Constructor<? extends Value> constructor = clazz.getConstructor(String.class);
-            return constructor.newInstance(Double.toString(Math.sqrt(Double.parseDouble(getVar().toString()))));
+            String var = getVar().toString();
+            if(clazz == IntegerValue.class) {
+                double val = Math.sqrt(Double.parseDouble(var));
+                int intVal = (int) val;
+                return constructor.newInstance(Integer.toString(intVal));
+            }
+            return constructor.newInstance(Double.toString(Math.sqrt(Double.parseDouble(var))));
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }

@@ -420,6 +420,10 @@ public class DataFrame {
             this.colNames = Arrays.asList(colNames);
         }
 
+        public HashMap<List<Value>, DataFrame> getMap() {
+            return map;
+        };
+
         /**
          * Returns DataFrame with output columns
          *
@@ -459,7 +463,7 @@ public class DataFrame {
 
         /**
          * Method used to calculate all implemented operations,
-         * with toDrop boolean variable, to decide if Value classes
+         * with toDrop boolean variable, to decide if Value CLASSES
          * like DateTimeValue should be on output
          *
          * @param operation Enum value, to choose which operation invoke

@@ -114,11 +114,11 @@ public class DataFrameDB extends DataFrame {
      *
      * @param tableName name for table in mysql database
      * @param file      csv file to read data from
-     * @param classes   classes in correct order for values in file
+     * @param classes   CLASSES in correct order for values in file
      * @param url       database url
      * @param userName  database user name
      * @param password  database user password
-     * @throws Exception throws when file, user name, url, user password, classes are invalid
+     * @throws Exception throws when file, user name, url, user password, CLASSES are invalid
      */
     public DataFrameDB(String tableName, String file, Class<? extends Value>[] classes, String url, String userName, String password) throws Exception {
         super(new BufferedReader(new FileReader(file)).readLine().split(","), classes);
@@ -303,7 +303,7 @@ public class DataFrameDB extends DataFrame {
          * Used to create and execute sql statement, then convert result into DataFrame
          *
          * @param expression expression returned from one of min, max etc methods
-         * @param toDrop     to drop tables with columns classes, where operations on values are impossible
+         * @param toDrop     to drop tables with columns CLASSES, where operations on values are impossible
          * @return result as DataFrame
          */
         private DataFrame operation(String expression, boolean toDrop) {
